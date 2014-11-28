@@ -1,4 +1,4 @@
-package sat;
+package parser;
 
 
 /**
@@ -18,26 +18,26 @@ public class SATParser {
     private int idx;
     private String nextToken;
 
-    public SATParser(String expression){
+    public SATParser(String expression) throws Exception{
         this.expression = expression;
         this.idx = 0;
         this.loadNextToken();
     }
 
     // print out all tokens
-    public void test(){
+    public void test() throws Exception{
         while(hasMoreTokens()){
             System.out.println(getNextToken());
         }
     }
 
-    public void reset(){
+    public void reset() throws Exception{
         this.idx = 0;
         this.loadNextToken();
     }
 
     //Done weirdly to skip whitespace at the end and terminate properly
-    public String getNextToken(){
+    public String getNextToken() throws Exception{
         String token = nextToken;
         this.loadNextToken();
         return token;
@@ -48,8 +48,8 @@ public class SATParser {
     }
 
     // saves next token into nextToken. Increases idx appropriately
-    private void loadNextToken(){
-        if hasMoreTokens() {
+    private void loadNextToken() throws Exception{
+        if(hasMoreTokens()){
             char currentChar = expression.charAt(idx);
             idx ++;
 
@@ -59,7 +59,7 @@ public class SATParser {
                 case '\n':
                 case '\t':
                 case '\r':
-                    loadNextToken()
+                    loadNextToken();
                 case '(':
                     nextToken = "(";
                     return;
@@ -70,7 +70,7 @@ public class SATParser {
                     if(expression.charAt(idx) == '&'){
                         idx ++;
                         nextToken = "&&";
-                        return
+                        return;
                     }
                     else{
                         throw new Exception("Parser error: Expected & at input index " + idx + ". Got " + currentChar);
