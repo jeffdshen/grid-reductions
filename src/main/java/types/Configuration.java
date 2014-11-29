@@ -71,6 +71,10 @@ public class Configuration {
         return nodes.get(id);
     }
 
+    /**
+     * Gets nodes in topological order.
+     * @return An iterable with all nodes in topological order.
+     */
     public Iterable<Node> getNodes() {
         return nodes.values();
     }

@@ -1,24 +1,25 @@
 package types;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.*;
 
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.Stack;
 
-/**
- * Created by jdshen on 11/28/14.
- */
 public class AtomicConfiguration {
     public ImmutableMap<String, Configuration> subs;
     public Configuration config;
+    public ImmutableSet<String> atoms;
 
-    public AtomicConfiguration(Configuration config, Iterable<Configuration> subs) {
-        this.config = config;
+    public AtomicConfiguration(Configuration config, Iterable<Configuration> subs, Set<String> atoms) {
         ImmutableMap.Builder<String, Configuration> builder = ImmutableMap.builder();
         for (Configuration conf : subs) {
             builder.put(conf.getName(), conf);
         }
+        this.subs = builder.build();
+        this.config = config;
+        this.atoms = ImmutableSet.copyOf(atoms);
     }
 
     public String getName() {
@@ -34,24 +35,21 @@ public class AtomicConfiguration {
         return new AtomicNode(context, cur.getNode(id));
     }
 
-    // TODO Should be okay once config iterator is done.
-    /*
     public Iterable<AtomicNode> getNodes() {
-        return new Iterable<Node>() {
+        return new Iterable<AtomicNode>() {
             @Override
-            public Iterator<Node> iterator() {
+            public Iterator<AtomicNode> iterator() {
                 return new ConfigIterator();
             }
-        }
+        };
     }
-    */
 
     public AtomicPort getPort(AtomicPort port) {
         // go down
-        Stack<Configuration> configStack = new Stack<Configuration>();
+        Stack<Configuration> configStack = new Stack<>();
         configStack.push(config);
-        Stack<Node> nodeStack = new Stack<Node>();
-        Stack<Integer> context = new Stack<Integer>();
+        Stack<Node> nodeStack = new Stack<>();
+        Stack<Integer> context = new Stack<>();
 
         for (int node : port.getContext()) {
             nodeStack.push(configStack.peek().getNode(node));
@@ -90,31 +88,69 @@ public class AtomicConfiguration {
         return new AtomicNode(ImmutableList.<Integer>of(), config.getOutput());
     }
 
-    //TODO iterator that goes through atomic nodes one at a time, skipping over input and output nodes
-    /*
     private class ConfigIterator implements Iterator<AtomicNode> {
         private Stack<Integer> context;
         private Stack<PeekingIterator<Node>> iterators;
+        private boolean hasNext;
 
         public ConfigIterator() {
-            context = new Stack<Integer>();
-            iterators = new Stack<PeekingIterator<Node>>();
+            context = new Stack<>();
+            iterators = new Stack<>();
+            iterators.push(Iterators.peekingIterator(config.getNodes().iterator()));
+            hasNext = load();
         }
 
         @Override
         public boolean hasNext() {
-            if (iterators.peek().peek())
+            return hasNext;
         }
 
         @Override
         public AtomicNode next() {
-            return null;
+            AtomicNode node = new AtomicNode(context, iterators.peek().next());
+            load();
+            return node;
+        }
+
+        /**
+         * Advances the iterator until the next element is a labelled node. Returns true if there is another element.
+         * Returns false otherwise.
+         */
+        public boolean load() {
+            if (iterators.empty()) {
+                return false;
+            }
+
+            PeekingIterator<Node> it = iterators.peek();
+            while(it.peek().getType() != NodeType.LABELLED || !atoms.contains(it.peek().getName())) {
+                Node next = it.peek();
+                switch (next.getType()) {
+                    case INPUT:
+                        it.next();
+                        break;
+                    case OUTPUT:
+                        iterators.pop();
+                        if (iterators.empty()) {
+                            return false;
+                        }
+
+                        context.pop();
+                        it = iterators.peek();
+                        break;
+                    case LABELLED:
+                        iterators.push(Iterators.peekingIterator(subs.get(next.getName()).getNodes().iterator()));
+                        context.push(next.getId());
+                        it = iterators.peek();
+                        break;
+                }
+            }
+
+            return true;
         }
 
         @Override
         public void remove() {
-
+            throw new UnsupportedOperationException();
         }
     }
-        */
 }

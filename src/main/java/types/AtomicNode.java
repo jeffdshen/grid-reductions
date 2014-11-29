@@ -16,6 +16,8 @@ public class AtomicNode {
         this.id = Iterables.concat(context, ImmutableList.of(node.getId()));
     }
 
+
+
     public List<Integer> getContext() {
         return context;
     }
