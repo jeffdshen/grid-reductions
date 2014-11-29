@@ -4,14 +4,12 @@ import types.Gadget;
 import types.Location;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by kevin on 11/28/14.
- */
 public class GadgetParser {
 
     public GadgetParser(){
@@ -19,25 +17,26 @@ public class GadgetParser {
 
     /**
      * Parse a txt document and create a grid gadget
-     * @param path path to the txt specifying the gadget
-     * @return
+     * @param file file object for the txt specifying the gadget
+     * @return a gadget
      * @throws IOException
      *
      * The format of the txt should be space separated
-     * line 1: width height
-     * line 2: input1 input2 ...
-     * line 3: output1 output2 ...
-     * line 4: space separated things for cells
-     *
+     * line 1: name
+     * line 2: width height
+     * line 3: input1 input2 ...
+     * line 4: output1 output2 ...
+     * line 5: space separated things for cells
      *
      * inputs and outputs have format xLoc,yLoc or (xLoc,yLoc)
      */
-    public Gadget parseGadget(String name, String path) throws IOException{
+    public Gadget parseGadget(File file) throws IOException{
         String[][] cells;
-        List<Location> inputs = new ArrayList<Location>();
-        List<Location> outputs = new ArrayList<Location>();
+        List<Location> inputs = new ArrayList<>();
+        List<Location> outputs = new ArrayList<>();
 
-        try(BufferedReader br = new BufferedReader(new FileReader(path))){
+        try(BufferedReader br = new BufferedReader(new FileReader(file))){
+            String name = br.readLine();
             String[] dimensions = br.readLine().split(" ");
             int width = Integer.parseInt(dimensions[0]);
             int height = Integer.parseInt(dimensions[1]);
@@ -53,26 +52,25 @@ public class GadgetParser {
                 outputs.add(new Location(Integer.parseInt(loc[0]), Integer.parseInt(loc[1])));
             }
 
-            int curRow = 0;
+            int curY = 0;
             String line;
             while((line = br.readLine()) != null){
-                int curCol = 0;
+                int curX = 0;
                 for(String cell : line.split(" ")){
-                    if(inBounds(curRow, curCol, width, height)){
-                        cells[curRow][curCol] = cell;
-                        curCol ++;
-                    }
-                    else{
+                    if(inBounds(curX, curY, width, height)){
+                        cells[curX][curY] = cell;
+                        curX++;
+                    } else{
                         System.err.println("Warning: cell data exceeds provided dimensions. Skipping data.");
                     }
                 }
-                if(curCol < width){
-                    System.err.println("Warning: only " + curCol + " entries specified for row " + (curRow + 1));
+                if(curX < width){
+                    System.err.println("Warning: only " + curX + " entries specified for row " + (curY + 1));
                 }
-                curRow ++;
+                curY++;
             }
-            if(curRow < height){
-                System.err.println("Warning: only " + curRow + " rows have been specified");
+            if(curY < height){
+                System.err.println("Warning: only " + curY + " rows have been specified");
             }
             return new Gadget(name, cells, inputs, outputs);
         }

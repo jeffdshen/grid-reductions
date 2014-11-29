@@ -41,7 +41,11 @@ public class Gadget {
     }
 
     public boolean isValid(Location loc) {
-        return loc.getX() >= 0 && loc.getX() < sizeX && loc.getY() >= 0 && loc.getY() < sizeY;
+        return isValid(loc.getX(), loc.getY());
+    }
+
+    public boolean isValid(int x, int y) {
+        return x >= 0 && x < sizeX && y >= 0 && y < sizeY;
     }
 
     public String getCell(Location loc) {
