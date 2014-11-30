@@ -1,5 +1,8 @@
 package parser;
 
+import com.google.common.base.Function;
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Iterables;
 import org.testng.annotations.Test;
 import types.Configuration;
 import types.Node;
@@ -17,7 +20,16 @@ public class ConfigurationParserTest {
         ConfigurationParser parser = new ConfigurationParser();
         Configuration cfg = parser.parseConfiguration(new File(getClass().getResource("nand.txt").getFile()));
         assertEquals(cfg.getName(), "NAND");
-        
+
+        assertEquals(ImmutableList.of(0, 1, 2, 4), ImmutableList.copyOf(Iterables.transform(cfg.getNodes(),
+            new Function<Node, Integer>() {
+                @Override
+                public Integer apply(Node input) {
+                    return input.getId();
+                }
+            }
+        )));
+
         Node in = cfg.getNode(0);
         Node andNode = cfg.getNode(1);
         Node notNode = cfg.getNode(2);
