@@ -1,4 +1,4 @@
-package types.configuration.cells;
+package types;
 
 import com.google.common.collect.ImmutableMap;
 

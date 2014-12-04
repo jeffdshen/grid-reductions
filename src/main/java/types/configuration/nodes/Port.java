@@ -1,4 +1,4 @@
-package types;
+package types.configuration.nodes;
 
 public class Port {
     private final int id;

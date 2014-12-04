@@ -4,9 +4,9 @@ import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.testng.annotations.Test;
-import types.Configuration;
-import types.Node;
-import types.NodeType;
+import types.configuration.Configuration;
+import types.configuration.nodes.Node;
+import types.configuration.nodes.NodeType;
 
 import java.io.File;
 

@@ -1,9 +1,9 @@
 package transform;
 
-import types.AtomicConfiguration;
-import types.Configuration;
-import types.Node;
-import types.NodeType;
+import types.configuration.AtomicConfiguration;
+import types.configuration.Configuration;
+import types.configuration.nodes.Node;
+import types.configuration.nodes.NodeType;
 
 import java.util.HashMap;
 import java.util.HashSet;

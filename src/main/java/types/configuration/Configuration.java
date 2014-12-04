@@ -1,7 +1,10 @@
-package types;
+package types.configuration;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
+import types.configuration.nodes.ConnectedNode;
+import types.configuration.nodes.Node;
+import types.configuration.nodes.Port;
 
 import java.util.List;
 

@@ -1,7 +1,8 @@
 package parser;
 
 import com.google.common.base.Preconditions;
-import types.*;
+import types.configuration.Configuration;
+import types.configuration.nodes.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;

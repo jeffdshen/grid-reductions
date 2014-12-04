@@ -2,6 +2,7 @@ package types.configuration.cells;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import types.Direction;
 
 import java.util.List;
 

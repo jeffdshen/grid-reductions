@@ -1,7 +1,9 @@
-package types.configuration.cells;
+package types.configuration;
 
 import com.google.common.base.Preconditions;
 import types.Location;
+import types.configuration.cells.Cell;
+import types.configuration.cells.EmptyCell;
 
 public class GridConfiguration {
     private Cell[][] cells;

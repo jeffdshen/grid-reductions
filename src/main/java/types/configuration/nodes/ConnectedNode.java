@@ -1,4 +1,4 @@
-package types;
+package types.configuration.nodes;
 
 import java.util.List;
 

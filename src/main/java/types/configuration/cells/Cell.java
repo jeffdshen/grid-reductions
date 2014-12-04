@@ -1,5 +1,7 @@
 package types.configuration.cells;
 
+import types.Direction;
+
 import java.util.List;
 
 /**

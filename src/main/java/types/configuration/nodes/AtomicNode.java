@@ -1,4 +1,4 @@
-package types;
+package types.configuration.nodes;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;

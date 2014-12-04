@@ -1,9 +1,9 @@
 package parser;
 
-import types.*;
+import types.configuration.Configuration;
+import types.configuration.nodes.*;
 
 import java.io.*;
-import java.text.ParseException;
 import java.util.*;
 
 /**

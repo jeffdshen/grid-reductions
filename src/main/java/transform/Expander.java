@@ -1,6 +1,11 @@
-package types.configuration.cells;
+package transform;
 
 import com.google.common.base.Preconditions;
+import types.Direction;
+import types.configuration.cells.Cell;
+import types.configuration.cells.EmptyCell;
+import types.configuration.cells.NodeCell;
+import types.configuration.cells.WireCell;
 
 public class Expander {
     /**

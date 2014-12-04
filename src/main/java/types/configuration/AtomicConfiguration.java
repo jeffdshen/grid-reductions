@@ -1,6 +1,7 @@
-package types;
+package types.configuration;
 
 import com.google.common.collect.*;
+import types.configuration.nodes.*;
 
 import java.util.Iterator;
 import java.util.List;
