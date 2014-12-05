@@ -13,6 +13,17 @@ public enum Direction {
 
     private final static ImmutableMap<Direction, Direction> OPPOSITES = constructOpposites();
 
+    /**
+     * Gets the closest direction
+     */
+    public static Direction getClosestDirection(int x, int y) {
+        if (x >= y) {
+            return x >= -y ? EAST : NORTH;
+        } else {
+            return x >= -y ? SOUTH : WEST;
+        }
+    }
+
     private static ImmutableMap<Direction, Direction> constructOpposites() {
         return ImmutableMap.of(
                 NORTH, SOUTH,

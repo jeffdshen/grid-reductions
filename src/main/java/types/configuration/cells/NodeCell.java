@@ -48,7 +48,17 @@ public class NodeCell implements Cell {
     }
 
     @Override
-    public int getPortNumber() {
+    public boolean isOutput(Direction d) {
+        return false;
+    }
+
+    @Override
+    public boolean isInput(Direction d) {
+        return false;
+    }
+
+    @Override
+    public int getPortNumber(Direction d) {
         throw new UnsupportedOperationException();
     }
 
