@@ -14,8 +14,9 @@ public class OutputGrid {
     private int cellY;
     //size of each cell
     private int cellDim;
+    private Gadget empty;
 
-    public OutputGrid(int cellX, int cellY, int cellDim){
+    public OutputGrid(int cellX, int cellY, int cellDim, Gadget empty){
         this.cellX = cellX;
         this.cellY = cellY;
         this.cellDim = cellDim;
@@ -56,7 +57,23 @@ public class OutputGrid {
         }
     }
 
+    private void fillEmpty(){
+        for(int i = 0; i < outputGrid.length; i ++ ){
+            for(int j = 0; j < outputGrid[0].length; j++){
+                if(outputGrid[i][j]==null){
+                    placeGadget(empty, i, j);
+                }
+            }
+        }
+    }
+
+    /***
+     * Fills in "empty" squares and returns the grid.
+     *
+     * @return
+     */
     public String[][] getOutputGrid(){
+        fillEmpty();
         return outputGrid;
     }
 
