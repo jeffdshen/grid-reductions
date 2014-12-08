@@ -12,6 +12,14 @@ public class Location {
         this.y = y;
     }
 
+    public Location offset(int offsetX, int offsetY){
+        return new Location(x + offsetX, y + offsetY);
+    }
+    public Location offset(Location offset){
+        return offset(offset.x, offset.y);
+    }
+    public Location offset(Direction d){ return offset(d.getX(), d.getY()); }
+
     @Override
     public boolean equals(Object o) {
         if (o instanceof Location) {

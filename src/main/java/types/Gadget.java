@@ -60,6 +60,10 @@ public class Gadget {
         return name;
     }
 
+    public int getSizeX(){ return sizeX; }
+
+    public int getSizeY(){ return sizeY; }
+
     public int getInputSize() {
         return inputs.size();
     }

@@ -12,6 +12,8 @@ public enum Direction {
     private final int y;
 
     private final static ImmutableMap<Direction, Direction> OPPOSITES = constructOpposites();
+    private final static ImmutableMap<Direction, Direction> CLOCKWISE = constructClockwise();
+    private final static ImmutableMap<Direction, Direction> ANTICLOCKWISE = constructAntiClockwise();
 
     /**
      * Gets the closest direction
@@ -33,6 +35,24 @@ public enum Direction {
         );
     }
 
+    private static ImmutableMap<Direction, Direction> constructClockwise() {
+        return ImmutableMap.of(
+                NORTH, EAST,
+                SOUTH, WEST,
+                EAST, SOUTH,
+                WEST, NORTH
+        );
+    }
+    private static ImmutableMap<Direction, Direction> constructAntiClockwise() {
+        return ImmutableMap.of(
+                NORTH, WEST,
+                SOUTH, EAST,
+                EAST, NORTH,
+                WEST, SOUTH
+        );
+    }
+
+
     private Direction(int x, int y) {
         this.x = x;
         this.y = y;
@@ -49,4 +69,7 @@ public enum Direction {
     public Direction opposite() {
         return OPPOSITES.get(this);
     }
+
+    public Direction clockwise() { return CLOCKWISE.get(this); }
+    public Direction anticlockwise() { return ANTICLOCKWISE.get(this); }
 }
