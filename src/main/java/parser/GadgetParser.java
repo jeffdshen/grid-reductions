@@ -43,11 +43,17 @@ public class GadgetParser {
 
             cells = new String[width][height];
             for(String input : br.readLine().split(" ")){
+                if(input.length() == 0){
+                    continue;
+                }
                 String[] loc = input.replaceAll("[()]","").split(",");
                 inputs.add(new Location(Integer.parseInt(loc[0]), Integer.parseInt(loc[1])));
             }
 
             for(String output : br.readLine().split(" ")){
+                if(output.length() == 0){
+                    continue;
+                }
                 String[] loc = output.replaceAll("[()]","").split(",");
                 outputs.add(new Location(Integer.parseInt(loc[0]), Integer.parseInt(loc[1])));
             }

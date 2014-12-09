@@ -30,7 +30,12 @@ public class FrobeniusSolver {
         }
 
         if(!areRelativelyPrime(values)){
-            throw new Exception("Error: provided wire lengths are not relatively prime");
+            String s = "[";
+            for(int i = 0; i <values.length; i++){
+                s = s + values[i] + ",";
+            }
+            s = s + "]";
+            throw new Exception("Error: provided wire lengths are not relatively prime : " + s);
         }
 
         this.values = values;

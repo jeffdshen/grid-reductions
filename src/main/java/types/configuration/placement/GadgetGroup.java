@@ -47,4 +47,15 @@ public class GadgetGroup {
         return subGroups.get(i);
     }
 
+    @Override
+    public String toString(){
+        StringBuilder str = new StringBuilder();
+        str.append("GadgetGroup : Base = " + baseGadget.getName() + " "+ baseGadget.getSizeX() + ", "+ baseGadget.getSizeY());
+
+        str.append("\n  Offset, SubGroups:");
+        for(int i = 0; i < subGroups.size(); i ++){
+            str.append("\n  " + offsets.get(i) + ", " + subGroups.get(i) );
+        }
+        return str.toString();
+    }
 }
