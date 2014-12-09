@@ -1,8 +1,5 @@
 package types;
 
-/**
- * Created by jdshen on 11/25/14.
- */
 public class Location {
     private final int x;
     private final int y;
@@ -27,6 +24,10 @@ public class Location {
             return (x == that.x) && (y == that.y);
         }
         return super.equals(o);
+    }
+
+    public Location add(Direction d) {
+        return new Location(x + d.getX(), y + d.getY());
     }
 
     public int getX() {

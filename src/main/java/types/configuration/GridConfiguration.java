@@ -132,6 +132,7 @@ public class GridConfiguration implements Grid {
             for (int j = 0; j < sizeX * 3; j++) {
                 builder.append(grid[j][i]);
             }
+            builder.append("\n");
         }
         builder.append(")");
         return builder.toString();
