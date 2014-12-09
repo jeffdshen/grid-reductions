@@ -6,14 +6,13 @@ import types.Direction;
 import types.configuration.nodes.Port;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractCell implements Cell {
     private final ImmutableBiMap<Integer, Direction> inputs;
     private final ImmutableBiMap<Integer, Direction> outputs;
 
-    public AbstractCell(List<Direction> inputs, List<Direction> outputs) {
+    public AbstractCell(Iterable<Direction> inputs, Iterable<Direction> outputs) {
         this.inputs = getBiMap(inputs);
         this.outputs = getBiMap(outputs);
     }
@@ -34,7 +33,7 @@ public abstract class AbstractCell implements Cell {
     }
 
 
-    private static ImmutableBiMap<Integer, Direction> getBiMap(List<Direction> dirs) {
+    private static ImmutableBiMap<Integer, Direction> getBiMap(Iterable<Direction> dirs) {
         ImmutableBiMap.Builder<Integer, Direction> builder = ImmutableBiMap.builder();
         int index = 0;
         for (Direction dir : dirs) {

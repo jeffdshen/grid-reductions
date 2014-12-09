@@ -2,17 +2,22 @@ package types.configuration;
 
 import com.google.common.base.Preconditions;
 import types.Direction;
+import types.Grid;
 import types.Location;
 import types.configuration.cells.Cell;
 import types.configuration.cells.EmptyCell;
 
-public class GridConfiguration {
+public class GridConfiguration implements Grid {
     private Cell[][] cells;
     private int sizeX;
     private int sizeY;
 
     public GridConfiguration(int initialSizeX, int initialSizeY) {
-        this.cells = getEmptyCells(initialSizeX, initialSizeY);
+        this(EmptyCell.getInstance(), initialSizeX, initialSizeY);
+    }
+
+    public GridConfiguration(Cell background, int initialSizeX, int initialSizeY) {
+        this.cells = getCellCopies(background, initialSizeX, initialSizeY);
         this.sizeX = initialSizeX;
         this.sizeY = initialSizeY;
     }
@@ -24,25 +29,43 @@ public class GridConfiguration {
     }
 
     public void resize(int x, int y) {
+        resize(EmptyCell.getInstance(), x, y);
+    }
+
+    public void resize(Cell background, int x, int y) {
         Preconditions.checkArgument(x >= sizeX);
         Preconditions.checkArgument(y >= sizeY);
-        Cell[][] newCells = getEmptyCells(x, y);
+        Cell[][] newCells = getCellCopies(background, x, y);
         put(newCells, this, 0, 0);
         this.cells = newCells;
     }
 
+    @Override
+    public boolean isValid(Location loc) {
+        return isValid(loc.getX(), loc.getY());
+    }
+
+    @Override
+    public boolean isValid(int x, int y) {
+        return x >= 0 && x < sizeX && y >= 0 && y < sizeY;
+    }
+
+    @Override
     public int getSizeX() {
         return sizeX;
     }
 
+    @Override
     public int getSizeY() {
         return sizeY;
     }
 
+    @Override
     public Cell getCell(Location loc) {
         return cells[loc.getX()][loc.getY()];
     }
 
+    @Override
     public Cell getCell(int x, int y) {
         return cells[x][y];
     }
@@ -59,11 +82,11 @@ public class GridConfiguration {
         this.cells[loc.getX()][loc.getY()] = cell;
     }
 
-    private static Cell[][] getEmptyCells(int x, int y) {
+    private static Cell[][] getCellCopies(Cell original, int x, int y) {
         Cell[][] cells = new Cell[x][y];
         for (int i = 0; i < x; i++) {
             for (int j = 0; j < y; j++) {
-                cells[x][y] = EmptyCell.getInstance();
+                cells[i][j] = original;
             }
         }
         return cells;
