@@ -21,7 +21,7 @@ import java.util.Map;
  */
 public class GadgetPlacer {
 
-    //input direction, output direction
+    //input-> output direction at input, input->output direction at output
     private Map<Direction, Map<Direction, Gadget>> turns;
 
     //most clockwise output direction
@@ -63,12 +63,13 @@ public class GadgetPlacer {
             else{
                 outDirGadgets.put(start.clockwise(), reflectGadgetVertically(temp));
             }
-            turns.put(start, outDirGadgets);
+            turns.put(start.opposite(), outDirGadgets);
             start = start.clockwise();
             temp = rotateGadget(temp);
         }
 
         //normalize a crossover (outs go north and east)
+        this.crossovers = new HashMap<>();
         temp = normalizeCrossover(crossover);
         start = Direction.EAST;
         for(int i = 0; i< 4; i++){
@@ -85,20 +86,21 @@ public class GadgetPlacer {
         //normalize wires
         for(int i = 0; i<wires.size(); i++){
             tempWires.add(normalizeWire(wires.get(i)));
-            wireLengths[i] = wires.get(i).getSizeY();
-            wireWidths[i] = wires.get(i).getSizeX();
-            maxWireWidth = Math.max(wires.get(i).getSizeX(), maxWireWidth);
+            wireLengths[i] = tempWires.get(i).getSizeY();
+            wireWidths[i] = tempWires.get(i).getSizeX();
+            maxWireWidth = Math.max(wireWidths[i], maxWireWidth);
         }
-        start = Direction.SOUTH;
+        directionalwires = new HashMap<>();
+        start = Direction.NORTH;
         directionalwires.put(start, tempWires);
         for(int i = 0; i< 3; i++){
             List<Gadget> rotatedWires = new ArrayList<>();
             for(Gadget wire: tempWires) {
                 rotatedWires.add(rotateGadget(wire));
             }
+            start = start.clockwise();
             directionalwires.put(start, rotatedWires);
             tempWires = rotatedWires;
-            start = start.clockwise();
         }
 
         frobSolver = new FrobeniusSolver(this.wireLengths);
@@ -121,8 +123,13 @@ public class GadgetPlacer {
             maxNumPorts = Math.max(maxNumPorts, gadget.getInputSize() + gadget.getOutputSize());
         }
         // max gadget size + minwireLength + (max#outputs/inputs)*(turnDim + wireWidth)
-        this.cellSize = 6*(minWireLength + maxGadgetDim) + 4*((maxNumPorts+2)*(maxWireWidth + maxTurnDim));
+        System.out.println("MinWireLength " + minWireLength);
+        System.out.println("MaxNumPorts " + maxNumPorts);
+
+        this.cellSize = 6*minWireLength + 2*maxGadgetDim + 2*(Math.max(maxNumPorts+2, 4))*(Math.max(maxWireWidth,maxTurnDim));
         this.halfCellSize = cellSize/2;
+        System.out.println("CellSize: " + cellSize);
+        System.out.println("halfCellSize: " + halfCellSize);
 
     }
 
@@ -130,7 +137,7 @@ public class GadgetPlacer {
         int sizeX = gridConfig.getSizeX();
         int sizeY = gridConfig.getSizeY();
         OutputGrid output = new OutputGrid(sizeX, sizeY, cellSize, empty);
-        Boolean[][] visited = new Boolean[sizeX][sizeY];
+        boolean[][] visited = new boolean[sizeX][sizeY];
         for(int i = 0; i < sizeX; i++){
             for(int j = 0; j < sizeY; j++){
                 if(!visited[i][j]){
@@ -208,24 +215,25 @@ public class GadgetPlacer {
         Direction inDir = getEdge(input, in.getSizeX(), in.getSizeY());
         Direction outDir = getEdge(output, out.getSizeX(), out.getSizeY());
         if(inDir.opposite() != outDir){
+            System.out.println("INDIR: " + inDir + " OUTDIR: " +  outDir);
             throw new Exception("Can't align gadget inputs and outputs that aren't on opposite sides");
         }
         if(!flip) {
-            return new Location(output.getX() - input.getX(), output.getY() - input.getY());
+            return new Location(output.getX() - input.getX() + outDir.getX(), output.getY() - input.getY() + outDir.getY());
         }
         else{
-            return new Location(input.getX() - output.getX(), input.getY() - output.getY());
+            return new Location(input.getX() - output.getX()+ inDir.getX(), input.getY() - output.getY() + inDir.getY());
         }
     }
 
     /***
-     * Generate a gadget group representing a wire to target location
+     * Generate a gadget group representing a wire to target offset
      * The base gadget contains the input/output to the wire.
      *
      * Target location should not be opposite of inDir
      *
      * @param inDir initial wire direction
-     * @param target the offset from gadget group input to output
+     * @param target the offset we will output at if following the input of this group in the inDir
      * @param flipped whether the base gadget contains the output of wire  and wire direction is flipped
      * @return gadget representing wire to target location. Wire output direction same as input
      */
@@ -243,22 +251,20 @@ public class GadgetPlacer {
                     return generateStraightWire(inDir, Math.abs(target.getY()), false); //change for EW
                 }
                 else if(Math.abs(target.getX()) > cutoff){  //change for EW
+
                     //2-turn
                     finalTurnDir = Direction.getClosestDirection(target.getX(), 0); //change for EW
-                    if(flipped){
-                        inDir = inDir.opposite();
-                        finalTurnDir = finalTurnDir.opposite();
-                    }
                     Gadget turn = turns.get(inDir).get(finalTurnDir);
+                    if(flipped){
+                        turn = turns.get(finalTurnDir.opposite()).get(inDir.opposite());
+                    }
                     Location turnIn = turn.getInput(0);
                     Location turnOut = turn.getOutput(0);
-                    int x = target.getX() - (turnOut.getX() - turnIn.getX());
-                    int y = target.getY() - (turnOut.getY() - turnIn.getY());
+                    int x = target.getX() - finalTurnDir.getX() - getOutInDist(turn, true, flipped) ;
+                    int y = target.getY() - finalTurnDir.getY() -  getOutInDist(turn, false, flipped) ;
                     if(flipped){
-                        x = target.getX() - (turnIn.getX() - turnOut.getX());
-                        y = target.getY() - (turnIn.getY() - turnOut.getY());
                         GadgetGroup ret = new GadgetGroup(turn);
-                        GadgetGroup sub = generateTurnWire(finalTurnDir.opposite(), inDir.opposite(), new Location(x, y), true);
+                        GadgetGroup sub = generateTurnWire(finalTurnDir, inDir, new Location(x, y), true);
                         ret.addGroup(sub, getAlignmentOffset( sub.getBaseGadget(), 0, turn, 0, true));
                         return ret;
                     }
@@ -286,20 +292,17 @@ public class GadgetPlacer {
                 else if(Math.abs(target.getY()) > cutoff){
                     //2-turn
                     finalTurnDir = Direction.getClosestDirection(0, target.getY());
-                    if(flipped){
-                        inDir = inDir.opposite();
-                        finalTurnDir = finalTurnDir.opposite();
-                    }
                     Gadget turn = turns.get(inDir).get(finalTurnDir);
+                    if(flipped){
+                        turn = turns.get(finalTurnDir.opposite()).get(inDir.opposite());
+                    }
                     Location turnIn = turn.getInput(0);
                     Location turnOut = turn.getOutput(0);
-                    int x = target.getX() - (turnOut.getX() - turnIn.getX());
-                    int y = target.getY() - (turnOut.getY() - turnIn.getY());
+                    int x = target.getX() - finalTurnDir.getX() - getOutInDist(turn, true, flipped) ;
+                    int y = target.getY() - finalTurnDir.getY() - getOutInDist(turn, false, flipped) ;
                     if(flipped){
-                        x = target.getX() - (turnIn.getX() - turnOut.getX());
-                        y = target.getY() - (turnIn.getY() - turnOut.getY());
                         GadgetGroup ret = new GadgetGroup(turn);
-                        GadgetGroup sub = generateTurnWire(finalTurnDir.opposite(), inDir.opposite(), new Location(x, y), true);
+                        GadgetGroup sub = generateTurnWire(finalTurnDir, inDir, new Location(x, y), true);
                         ret.addGroup(sub, getAlignmentOffset( sub.getBaseGadget(), 0, turn, 0, true));
                         return ret;
                     }
@@ -319,31 +322,30 @@ public class GadgetPlacer {
             default:
                 throw new Exception("What is this direction even?");
         }
-        if(flipped){
-            finalTurnDir = finalTurnDir.opposite();
-            inDir = inDir.opposite();
-        }
         //4-turn case
         Direction initTurnDir = finalTurnDir.opposite();
         Gadget firstTurn = turns.get(inDir).get(initTurnDir);
         Gadget secondTurn = turns.get(initTurnDir).get(inDir);
         Gadget thirdTurn = turns.get(inDir).get(finalTurnDir);
         if(flipped){
-            finalTurnDir = finalTurnDir.opposite();
-            inDir = inDir.opposite();
+            firstTurn = turns.get(finalTurnDir).get(inDir.opposite());
+            secondTurn = turns.get(inDir.opposite()).get(finalTurnDir);
+            thirdTurn = turns.get(initTurnDir).get(inDir.opposite());
         }
         int thirdTurnOutX = target.getX()
                 - getOutInDist(firstTurn, true, flipped)
                 - (cutoff*initTurnDir.getX())
                 - getOutInDist(secondTurn, true, flipped)
                 - (minWireLength * inDir.getX())
-                - getOutInDist(thirdTurn, true, flipped);
+                - getOutInDist(thirdTurn, true, flipped)
+                - inDir.getX();
         int thirdTurnOutY = target.getY()
                 - getOutInDist(firstTurn, false, flipped)
                 - (cutoff*initTurnDir.getY())
                 - getOutInDist(secondTurn, false, flipped)
                 - (minWireLength * inDir.getY())
-                - getOutInDist(thirdTurn, false, flipped);
+                - getOutInDist(thirdTurn, false, flipped)
+                - inDir.getY();
         if(!flipped) {
             GadgetGroup sub = generateTurnWire(finalTurnDir, inDir, new Location(thirdTurnOutX, thirdTurnOutY));
             GadgetGroup turn3 = new GadgetGroup(thirdTurn);
@@ -357,13 +359,21 @@ public class GadgetPlacer {
             return turn1;
         }
         else{
+            System.out.println("Making Same dir wire 4turn-case - Target:" + target);
+            System.out.println("flipped: " + flipped);
+            System.out.println("Generating turn " + finalTurnDir + " " + inDir);
+            System.out.println("     Target " + new Location(thirdTurnOutX, thirdTurnOutY) );
             GadgetGroup sub = generateTurnWire(finalTurnDir, inDir, new Location(thirdTurnOutX, thirdTurnOutY), true);
             GadgetGroup turn3 = new GadgetGroup(thirdTurn);
+            System.out.println("   Final Turn : " + thirdTurn.getInput(0) + " " + thirdTurn.getOutput(0));
             turn3.addGroup(sub, getAlignmentOffset(sub.getBaseGadget(), 0, thirdTurn, 0, true));
+            System.out.println("   Straight wire Direction " + inDir.opposite() + " length : " + minWireLength);
             GadgetGroup temp = appendToStraightWire(inDir.opposite(), minWireLength, turn3, 0, true);
             GadgetGroup turn2 = new GadgetGroup(secondTurn);
             turn2.addGroup(temp, getAlignmentOffset(temp.getBaseGadget(), 0, secondTurn, 0, true));
+            System.out.println("  Second Turn : " + secondTurn.getInput(0) + " " + secondTurn.getOutput(0));
             GadgetGroup temp2 = appendToStraightWire(initTurnDir.opposite(), cutoff, turn2, 0, true);
+            System.out.println("  Second Straight wire Direction " + initTurnDir.opposite() + " length : " + cutoff);
             GadgetGroup turn1 = new GadgetGroup(firstTurn);
             turn1.addGroup(temp2, getAlignmentOffset(temp2.getBaseGadget(), 0, firstTurn, 0, true));
             return turn1;
@@ -395,7 +405,7 @@ public class GadgetPlacer {
      * Precondition that distance to target is > minWireLength + turn dimension in both dimensions
      * @param inDir input direction
      * @param outDir output direction
-     * @param target location to go to.
+     * @param target location to go to if the input were placed on 0,0
      * @param flipped whether input/output direction should be flipped and target is where the wire comes from
      * @return gadget group representing a turn with 1 turn gadget
      */
@@ -413,11 +423,12 @@ public class GadgetPlacer {
         if(Math.abs(target.getX()) < cutoff || Math.abs(target.getY()) < cutoff ){
             throw new Exception("Target " + target + " for turn wire has dimensions below cutoff " + cutoff);
         }
+        Gadget turn = turns.get(inDir).get(outDir);
         if(flipped){
             inDir = inDir.opposite();
             outDir = outDir.opposite();
+            turn = turns.get(outDir).get(inDir);
         }
-        Gadget turn = turns.get(inDir).get(outDir);
         Location turnIn = turn.getInput(0);
         Location turnOut = turn.getOutput(0);
         int length = 0;
@@ -430,7 +441,7 @@ public class GadgetPlacer {
             case EAST:
             case WEST:
                 length = Math.abs(target.getX());
-                length = length - Math.abs(turnOut.getY() - turnIn.getX());
+                length = length - Math.abs(turnOut.getX() - turnIn.getX());
                 break;
         }
         GadgetGroup turnAndWire = new GadgetGroup(turn);
@@ -450,7 +461,7 @@ public class GadgetPlacer {
             case EAST:
             case WEST:
                 length = Math.abs(target.getX());
-                length = length - Math.abs(turnOut.getY() - turnIn.getX());
+                length = length - Math.abs(turnOut.getX() - turnIn.getX());
                 break;
         }
         return appendToStraightWire(inDir, length, turnAndWire, 0, flipped);
@@ -495,9 +506,12 @@ public class GadgetPlacer {
                 GadgetGroup nextGroup = new GadgetGroup(wire);
                 if(currentGroup != null){
                     //figure out offsets
-                    Location offset = getAlignmentOffset(wire, 0, currentGroup.getBaseGadget(), curIdx, flipped);
+                    Location offset;
                     if(flipped){
                         offset = getAlignmentOffset(currentGroup.getBaseGadget(), curIdx, wire, 0, true);
+                    }
+                    else{
+                        offset = getAlignmentOffset(wire, 0, currentGroup.getBaseGadget(), curIdx, flipped);
                     }
                     nextGroup.addGroup(currentGroup, offset);
                 }
@@ -541,47 +555,47 @@ public class GadgetPlacer {
     //Input should be turn cell
     private OutputRect getTurnRect(Cell c) throws Exception{
         OutputRect rect = makeOutputRect(1,1);
-        Direction inDir = c.getInputDirection(0);
+        Direction inDir = c.getInputDirection(0).opposite();
         Direction outDir = c.getOutputDirection(0);
         GadgetGroup turn;
         Location wireInput;
-        switch(inDir){
+        switch(inDir.opposite()){
             case NORTH:
                 if(outDir == Direction.EAST){
-                    turn = generateTurnWire(inDir.opposite(), outDir, new Location(halfCellSize, -halfCellSize));
+                    turn = generateTurnWire(inDir, outDir, new Location(cellSize - halfCellSize - 1, halfCellSize));
                 }
                 else{
-                    turn = generateTurnWire(inDir.opposite(), outDir, new Location(-halfCellSize, -halfCellSize));
+                    turn = generateTurnWire(inDir, outDir, new Location(-halfCellSize, halfCellSize));
                 }
                 wireInput = turn.getBaseGadget().getInput(0);
                 rect.setContents(turn, new Location(halfCellSize - wireInput.getX(), 0));
                 break;
             case SOUTH:
                 if(outDir == Direction.EAST){
-                    turn = generateTurnWire(inDir.opposite(), outDir, new Location(halfCellSize, halfCellSize));
+                    turn = generateTurnWire(inDir, outDir, new Location(cellSize - halfCellSize-1, -(cellSize - halfCellSize-1)));
                 }
                 else{
-                    turn = generateTurnWire(inDir.opposite(), outDir, new Location(-halfCellSize, halfCellSize));
+                    turn = generateTurnWire(inDir, outDir, new Location(-halfCellSize, -(cellSize - halfCellSize-1)));
                 }
                 wireInput = turn.getBaseGadget().getInput(0);
                 rect.setContents(turn, new Location(halfCellSize - wireInput.getX(), cellSize - turn.getBaseGadget().getSizeY()));
                 break;
             case EAST:
                 if(outDir == Direction.NORTH){
-                    turn = generateTurnWire(inDir.opposite(), outDir, new Location(-halfCellSize, halfCellSize));
+                    turn = generateTurnWire(inDir, outDir, new Location(-(cellSize - halfCellSize-1), -halfCellSize));
                 }
                 else{
-                    turn = generateTurnWire(inDir.opposite(), outDir, new Location(-halfCellSize, -halfCellSize));
+                    turn = generateTurnWire(inDir, outDir, new Location(-(cellSize - halfCellSize-1), cellSize - halfCellSize-1));
                 }
                 wireInput = turn.getBaseGadget().getInput(0);
                 rect.setContents(turn, new Location(cellSize - turn.getBaseGadget().getSizeX(), halfCellSize - wireInput.getY()));
                 break;
             case WEST:
                 if(outDir == Direction.NORTH){
-                    turn = generateTurnWire(inDir.opposite(), outDir, new Location(halfCellSize, halfCellSize));
+                    turn = generateTurnWire(inDir, outDir, new Location(halfCellSize, -halfCellSize));
                 }
                 else{
-                    turn = generateTurnWire(inDir.opposite(), outDir, new Location(halfCellSize, -halfCellSize));
+                    turn = generateTurnWire(inDir, outDir, new Location(halfCellSize, cellSize - halfCellSize-1));
                 }
                 wireInput = turn.getBaseGadget().getInput(0);
                 rect.setContents(turn, new Location(0, halfCellSize - wireInput.getY()));
@@ -601,54 +615,84 @@ public class GadgetPlacer {
         }
         Gadget crossover = crossovers.get(outDir1);
         //place in center of cell
-        Location center = new Location(halfCellSize, halfCellSize);
+        int maxCrossoverDim = Math.max(crossover.getSizeX(), crossover.getSizeY());
+        int centerOffset = (maxCrossoverDim + minWireLength + 2*Math.max(maxTurnDim, maxWireWidth));
+        Location center = new Location(halfCellSize - centerOffset, halfCellSize-centerOffset);
         GadgetGroup crossoverGroup = new GadgetGroup(crossover);
         for(int i = 0; i < 2; i ++){
             Location input = crossover.getInput(i);
             Direction inputDir = getEdge(input, crossover.getSizeX(),crossover.getSizeY());
             Location start = center.offset(input);
             Location target;
+            int offsetLength;
+            Location offset;
             switch(inputDir){
                 case NORTH:
                     target = new Location(halfCellSize, 0);
+                    offsetLength = maxWireWidth + maxTurnDim;
+                    offset = new Location(0, offsetLength);
+
                     break;
                 case SOUTH:
-                    target = new Location(halfCellSize, cellSize);
+                    target = new Location(halfCellSize, cellSize-1);
+                    offsetLength = centerOffset + maxTurnDim;
+                    offset = new Location(0,-offsetLength);
                     break;
                 case EAST:
-                    target = new Location(cellSize, halfCellSize);
+                    target = new Location(cellSize-1, halfCellSize);
+                    offsetLength = centerOffset + maxTurnDim;
+                    offset = new Location(-offsetLength,0);
                     break;
                 case WEST:
                     target = new Location(0, halfCellSize);
+                    offsetLength = maxWireWidth + maxTurnDim;
+                    offset = new Location(offsetLength,0);
                     break;
                 default:
                     throw new Exception("Not a direction");
             }
-            GadgetGroup inWire = generateSameDirWire(inputDir, new Location(target.getX() - start.getX(), target.getY() - start.getY()),true);
+            GadgetGroup temp = generateSameDirWire(inputDir,
+                    (new Location(target.getX()-start.getX()-inputDir.getX(), target.getY()-start.getY()-inputDir.getY())).offset(offset)
+                    ,true);
+            GadgetGroup inWire = appendToStraightWire(inputDir.opposite(), offsetLength, temp, 0, true);
             crossoverGroup.addGroup(inWire, getAlignmentOffset(inWire.getBaseGadget(),0, crossover, i, true));
         }
-        for(int i = 0; i < 2; i ++){
+        for(int i = 0; i < 2; i ++) {
             Location output = crossover.getOutput(i);
-            Direction outputDir = getEdge(output, crossover.getSizeX(),crossover.getSizeY());
+            Direction outputDir = getEdge(output, crossover.getSizeX(), crossover.getSizeY());
             Location start = center.offset(output);
             Location target;
-            switch(outputDir){
+            Location offset;
+            int offsetLength;
+            switch (outputDir) {
                 case NORTH:
                     target = new Location(halfCellSize, 0);
+                    offsetLength =centerOffset;
+                    offset = new Location(0, offsetLength);
+
                     break;
                 case SOUTH:
-                    target = new Location(halfCellSize, cellSize);
+                    target = new Location(halfCellSize, cellSize-1);
+                    offsetLength = centerOffset + maxTurnDim;
+                    offset = new Location(0,-offsetLength);
                     break;
                 case EAST:
-                    target = new Location(cellSize, halfCellSize);
+                    target = new Location(cellSize-1, halfCellSize);
+                    offsetLength = centerOffset + maxTurnDim;
+                    offset = new Location(-offsetLength,0);
                     break;
                 case WEST:
                     target = new Location(0, halfCellSize);
+                    offsetLength = maxWireWidth + maxTurnDim;
+                    offset = new Location(offsetLength,0);
                     break;
                 default:
                     throw new Exception("Not a direction");
             }
-            GadgetGroup outWire = generateSameDirWire(outputDir, new Location(target.getX() - start.getX(), target.getY() - start.getY()),false);
+            GadgetGroup temp = generateSameDirWire(outputDir,
+                    (new Location(target.getX() - start.getX()-outputDir.getX(), target.getY() - start.getY()-outputDir.getY())).offset(offset)
+                    ,false);
+            GadgetGroup outWire = appendToStraightWire(outputDir, offsetLength, temp, 0, false);
             crossoverGroup.addGroup(outWire, getAlignmentOffset(crossover, i, outWire.getBaseGadget(), 0, false));
         }
         rect.setContents(crossoverGroup, center);
@@ -666,11 +710,11 @@ public class GadgetPlacer {
         //place in center of cell (0 0)
         Location center = new Location(halfCellSize, halfCellSize);
         GadgetGroup gadgetGroup = new GadgetGroup(g);
-        int buffer = maxTurnDim + maxWireWidth;
+        int buffer = Math.max(maxTurnDim , maxWireWidth);
         //iterate through sides
         //WEST
         int numTurn = 0;
-        int straightLength = minWireLength;
+        int straightLength = 2*minWireLength+Math.max(maxTurnDim, maxWireWidth);
         Direction curDir = Direction.WEST;
         for(int i = sizeY-1; i >= 0; i--){ //change
             if(cells[0][i].isInput(curDir)){ //change access
@@ -680,7 +724,7 @@ public class GadgetPlacer {
                 Location target = new Location(0, cellSize*i + halfCellSize); // change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
-                        new Location(target.getX()- start.getX() + length, target.getY() - start.getY()),
+                        new Location(target.getX()- start.getX() - curDir.getX() + length, target.getY() - start.getY() - curDir.getY()),
                         true);
                 GadgetGroup inWire = appendToStraightWire(curDir.opposite(), length, temp, 0, true);
                 gadgetGroup.addGroup(inWire, getAlignmentOffset(inWire.getBaseGadget(), 0, g, portIdx, true));
@@ -693,26 +737,26 @@ public class GadgetPlacer {
                 Location target = new Location(0, cellSize*i + halfCellSize); //change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
-                        new Location(target.getX()- start.getX() + length, target.getY() - start.getY()),
+                        new Location(target.getX()- start.getX() - curDir.getX() + length, target.getY() - start.getY() - curDir.getY()),
                         false);
                 GadgetGroup outWire = appendToStraightWire(curDir, length, temp, 0, false);
-                gadgetGroup.addGroup(outWire, getAlignmentOffset(g, portIdx, outWire.getBaseGadget(), 0, true));
+                gadgetGroup.addGroup(outWire, getAlignmentOffset(g, portIdx, outWire.getBaseGadget(), 0, false));
                 numTurn ++;
             }
         }
         //EAST
         numTurn = 0;
-        straightLength = cellSize*(sizeX - 1) + minWireLength;
+        straightLength = cellSize*(sizeX - 1) + 2*minWireLength+Math.max(maxTurnDim, maxWireWidth);
         curDir = Direction.EAST;
         for(int i = sizeY-1; i >= 0; i--){ //change
             if(cells[sizeX - 1][i].isInput(curDir)){ //change access
                 int portIdx = cells[sizeX - 1][i].getPortNumber(curDir);
                 Location input = g.getInput(portIdx);
                 Location start = center.offset(input);
-                Location target = new Location(cellSize*sizeX, cellSize*i + halfCellSize); // change
+                Location target = new Location(cellSize*sizeX-1, cellSize*i + halfCellSize); // change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
-                        new Location(target.getX()- start.getX() - length, target.getY() - start.getY()),
+                        new Location(target.getX()- start.getX() - curDir.getX() - length, target.getY() - start.getY() - curDir.getY()),
                         true);
                 GadgetGroup inWire = appendToStraightWire(curDir.opposite(), length, temp, 0, true);
                 gadgetGroup.addGroup(inWire, getAlignmentOffset(inWire.getBaseGadget(), 0, g, portIdx, true));
@@ -722,30 +766,30 @@ public class GadgetPlacer {
                 int portIdx = cells[sizeX - 1][i].getPortNumber(curDir);
                 Location output = g.getOutput(portIdx);
                 Location start = center.offset(output);
-                Location target = new Location(cellSize*sizeX, cellSize*i + halfCellSize); //change
+                Location target = new Location(cellSize*sizeX-1, cellSize*i + halfCellSize); //change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
-                        new Location(target.getX()- start.getX() - length, target.getY() - start.getY()),
+                        new Location(target.getX()- start.getX() - curDir.getX() - length, target.getY() - start.getY() - curDir.getY()),
                         false);
                 GadgetGroup outWire = appendToStraightWire(curDir, length, temp, 0, false);
-                gadgetGroup.addGroup(outWire, getAlignmentOffset(g, portIdx, outWire.getBaseGadget(), 0, true));
+                gadgetGroup.addGroup(outWire, getAlignmentOffset(g, portIdx, outWire.getBaseGadget(), 0, false));
                 numTurn ++;
             }
         }
 
         //SOUTH
         numTurn = 0;
-        straightLength = cellSize*(sizeY - 1) + minWireLength;
+        straightLength = cellSize*(sizeY - 1) + 2*minWireLength+Math.max(maxTurnDim, maxWireWidth);
         curDir = Direction.SOUTH;
         for(int i = sizeX-1; i >= 0; i--){ //change
             if(cells[i][sizeY - 1].isInput(curDir)){ //change access
                 int portIdx = cells[i][sizeY - 1].getPortNumber(curDir);
                 Location input = g.getInput(portIdx);
                 Location start = center.offset(input);
-                Location target = new Location(cellSize*i + halfCellSize, cellSize*sizeY); // change
+                Location target = new Location(cellSize*i + halfCellSize, cellSize*sizeY-1); // change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
-                        new Location(target.getX()- start.getX(), target.getY() - start.getY() - length),
+                        new Location(target.getX()- start.getX() - curDir.getX(), target.getY() - start.getY() - curDir.getY() - length),
                         true);
                 GadgetGroup inWire = appendToStraightWire(curDir.opposite(), length, temp, 0, true);
                 gadgetGroup.addGroup(inWire, getAlignmentOffset(inWire.getBaseGadget(), 0, g, portIdx, true));
@@ -755,20 +799,20 @@ public class GadgetPlacer {
                 int portIdx = cells[i][sizeY - 1].getPortNumber(curDir);
                 Location output = g.getOutput(portIdx);
                 Location start = center.offset(output);
-                Location target = new Location(cellSize*i + halfCellSize, cellSize*sizeY); //change
+                Location target = new Location(cellSize*i + halfCellSize, cellSize*sizeY-1); //change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
-                        new Location(target.getX()- start.getX(), target.getY() - start.getY() - length),
+                        new Location(target.getX()- start.getX() - curDir.getX(), target.getY() - start.getY() - curDir.getY() - length),
                         false);
                 GadgetGroup outWire = appendToStraightWire(curDir, length, temp, 0, false);
-                gadgetGroup.addGroup(outWire, getAlignmentOffset(g, portIdx, outWire.getBaseGadget(), 0, true));
+                gadgetGroup.addGroup(outWire, getAlignmentOffset(g, portIdx, outWire.getBaseGadget(), 0, false));
                 numTurn ++;
             }
         }
 
         //NORTH
         numTurn = 0;
-        straightLength = minWireLength;
+        straightLength = 2*minWireLength+Math.max(maxTurnDim, maxWireWidth);
         curDir = Direction.NORTH;
         for(int i = sizeX-1; i >= 0; i--){ //change
             if(cells[i][0].isInput(curDir)){ //change access
@@ -778,7 +822,7 @@ public class GadgetPlacer {
                 Location target = new Location(cellSize*i + halfCellSize, 0); // change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
-                        new Location(target.getX()- start.getX(), target.getY() - start.getY() + length),
+                        new Location(target.getX()- start.getX() - curDir.getX(), target.getY() - start.getY() - curDir.getY() + length),
                         true);
                 GadgetGroup inWire = appendToStraightWire(curDir.opposite(), length, temp, 0, true);
                 gadgetGroup.addGroup(inWire, getAlignmentOffset(inWire.getBaseGadget(), 0, g, portIdx, true));
@@ -791,10 +835,10 @@ public class GadgetPlacer {
                 Location target = new Location(cellSize*i + halfCellSize, 0); //change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
-                        new Location(target.getX()- start.getX(), target.getY() - start.getY() + length),
+                        new Location(target.getX()- start.getX() - curDir.getX(), target.getY() - start.getY() - curDir.getY() + length),
                         false);
                 GadgetGroup outWire = appendToStraightWire(curDir, length, temp, 0, false);
-                gadgetGroup.addGroup(outWire, getAlignmentOffset(g, portIdx, outWire.getBaseGadget(), 0, true));
+                gadgetGroup.addGroup(outWire, getAlignmentOffset(g, portIdx, outWire.getBaseGadget(), 0, false));
                 numTurn ++;
             }
         }
@@ -891,7 +935,7 @@ public class GadgetPlacer {
      * @param g wire gadget
      * @return normalized wire
      */
-    private Gadget normalizeWire(Gadget g){
+    public Gadget normalizeWire(Gadget g){
         Location input = g.getInput(0);
         Direction inputDir = getEdge(input, g.getSizeX(), g.getSizeY());
         switch(inputDir){
@@ -912,7 +956,7 @@ public class GadgetPlacer {
      * @param g gadget to rotate
      * @return rotated gadget
      */
-    private Gadget rotateAntiGadget(Gadget g){
+    public Gadget rotateAntiGadget(Gadget g){
         int sizeX = g.getSizeX();
         int sizeY = g.getSizeY();
         String[][] newCells = new String[sizeY][sizeX];

@@ -20,7 +20,9 @@ public class OutputGrid {
         this.cellX = cellX;
         this.cellY = cellY;
         this.cellDim = cellDim;
+        this.empty = empty;
         outputGrid = new String[cellX*cellDim][cellY*cellDim];
+//        System.out.println(cellDim);
     }
 
     public void placeRect(OutputRect rect, int cellOffsetX, int cellOffsetY){
@@ -32,6 +34,7 @@ public class OutputGrid {
         placeGadgetGroup(group, offset.getX(), offset.getY());
     }
     private void placeGadgetGroup(GadgetGroup group, int offsetX, int offsetY){
+//        System.out.println("Placing gadgetgroup " + "" + " at " + offsetX + ", " + offsetY);
         placeGadget(group.getBaseGadget(), offsetX, offsetY);
         for(int i = 0; i < group.getSubGroupsSize(); i++){
             placeGadgetGroup(group.getSubGroup(i),
@@ -40,6 +43,8 @@ public class OutputGrid {
     }
 
     private void placeGadget(Gadget g, int offsetX, int offsetY){
+//        System.out.println("Placing gadget " + g.getName() + " "+ g.getSizeX() + ", "+ g.getSizeY());
+//        System.out.println("at "  + offsetX + ", " + offsetY);
         for(int i = 0; i < g.getSizeX(); i ++){
             for(int j = 0; j < g.getSizeY(); j ++){
                 placeString(g.getCell(i,j), offsetX + i, offsetY + j);
@@ -49,11 +54,16 @@ public class OutputGrid {
 
     // checks that no gridcell written to twice when writing
     private void placeString(String s, int x, int y){
+        if(x < 0 || x >= cellDim*cellX || y < 0 || y>=cellDim*cellY){
+            System.err.println("TRYING TO WRITE OUTSIDE OF BOUNDS " + x + " " + y);
+            return;
+        }
         if(outputGrid[x][y] == null){
             outputGrid[x][y] = s;
         }
         else{
             System.err.println("Overwriting cell " + x + " , " + y + " during output");
+            System.err.println("Old value = " + outputGrid[x][y] + " new value = " + s);
         }
     }
 
