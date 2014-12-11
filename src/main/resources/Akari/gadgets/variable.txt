@@ -1,0 +1,7 @@
+VARIABLE
+2 3
+
+(0,1)
+x x
+. x
+x x

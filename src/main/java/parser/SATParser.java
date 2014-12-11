@@ -115,7 +115,6 @@ public class SATParser {
         endNodeIn.add(nodes.get(root).getOutputPort(0));
         connectedNodes.add(new ConnectedNode(endNode, endNodeIn, new ArrayList<Port>()));
         connectedNodes.add(new ConnectedNode(outputNode, new ArrayList<Port>(), new ArrayList<Port>()));
-
         return new Configuration("problem", connectedNodes);
     }
 
@@ -189,9 +188,9 @@ public class SATParser {
                 //decrement counter
                 String varId = node.getVarID();
                 labelCount.put(varId, labelCount.get(varId) - 1);
-                break;
+                return;
             default:
-                break;
+                return;
         }
         connectedNodes.add(new ConnectedNode(nodes.get(node), inPorts, outPorts));
     }
@@ -247,9 +246,7 @@ public class SATParser {
                 List<Node> varNodeList = varMap.get(varID);
 
                 int idx = labelCount.get(varID);
-                if(varNodeList.size() == 1) {
-                    nodes.put(node, varNodeList.get(Math.min(idx + 1, varNodeList.size())));
-                }
+                nodes.put(node, varNodeList.get(Math.min((idx + 1), varNodeList.size()-1)));
                 labelCount.put(varID, idx + 1);
                 break;
             default:
@@ -344,7 +341,7 @@ public class SATParser {
             orNode.setRightChild(rightChild);
             return parseGate(orNode);
         }else{
-            throw new Exception("Parser Error: Expecting && or || or )");
+            throw new Exception("Parser Error: Expecting && or || or ), got " + token);
         }
     }
 

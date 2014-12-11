@@ -17,11 +17,13 @@ public class SATTokenizer {
     private String expression;
     private int idx;
     private String nextToken;
+    private boolean ended;
 
     public SATTokenizer(String expression) throws Exception{
         this.expression = expression;
         this.idx = 0;
         this.loadNextToken();
+        this.ended = false;
     }
 
     // print out all tokens
@@ -34,6 +36,7 @@ public class SATTokenizer {
     public void reset() throws Exception{
         this.idx = 0;
         this.loadNextToken();
+        ended = false;
     }
 
     //Done weirdly to skip whitespace at the end and terminate properly
@@ -44,13 +47,14 @@ public class SATTokenizer {
     }
 
     public boolean hasMoreTokens(){
-        return idx < expression.length();
+        return !ended;
     }
+    public boolean hasMoreChars() { return idx < expression.length(); }
 
     //tokens: ( ) ! && || alphanumeric. true and false are reserved keywords
     // saves next token into nextToken. Increases idx appropriately
     private void loadNextToken() throws Exception{
-        if(hasMoreTokens()){
+        if(hasMoreChars()){
             char currentChar = expression.charAt(idx);
             idx ++;
 
@@ -61,6 +65,7 @@ public class SATTokenizer {
                 case '\t':
                 case '\r':
                     loadNextToken();
+                    return;
                 case '(':
                     nextToken = "(";
                     return;
@@ -71,7 +76,7 @@ public class SATTokenizer {
                     nextToken = "!";
                     return;
                 case '&':
-                    if(expression.charAt(idx) == '&'){
+                    if(hasMoreChars() && expression.charAt(idx) == '&'){
                         idx ++;
                         nextToken = "&&";
                         return;
@@ -80,7 +85,7 @@ public class SATTokenizer {
                         throw new Exception("Parser error: Expected & at input index " + idx + ". Got " + currentChar);
                     }
                 case '|':
-                    if(expression.charAt(idx) == '|'){
+                    if(hasMoreChars() && expression.charAt(idx) == '|'){
                         idx ++;
                         nextToken = "||";
                         return;
@@ -90,13 +95,18 @@ public class SATTokenizer {
                     }
                 default:
                     if(Character.isLetterOrDigit(currentChar)){
-                        StringBuilder str = new StringBuilder(currentChar);
-
+                        StringBuilder str = new StringBuilder();
+                        str.append(currentChar);
+                        if(!hasMoreChars()){
+                            nextToken = str.toString();
+                            return;
+                        }
                         currentChar = expression.charAt(idx);
                         while(Character.isLetterOrDigit(currentChar)){
+
                             str.append(currentChar);
                             idx ++;
-                            if(hasMoreTokens()) {
+                            if(hasMoreChars()) {
                                 currentChar = expression.charAt(idx);
                             }
                             else{
@@ -110,6 +120,9 @@ public class SATTokenizer {
                         throw new Exception("Parser error: Encountered illegal char " + currentChar + " at index " + idx);
                     }
             }
+        }
+        else{
+            ended = true;
         }
     }
 

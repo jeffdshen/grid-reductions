@@ -1,0 +1,9 @@
+NOR
+input 0 2
+output 4 1
+node 1 OR 2 1
+node 2 NOT 1 1
+
+0 (1,1) (1,0)
+1 (2,0)
+2 (4,0)
