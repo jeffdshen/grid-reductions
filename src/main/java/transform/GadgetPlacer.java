@@ -126,7 +126,7 @@ public class GadgetPlacer {
         System.out.println("MinWireLength " + minWireLength);
         System.out.println("MaxNumPorts " + maxNumPorts);
 
-        this.cellSize = 6*minWireLength + 2*maxGadgetDim + 2*(Math.max(maxNumPorts+2, 4))*(Math.max(maxWireWidth,maxTurnDim));
+        this.cellSize = 6*minWireLength + 2*maxGadgetDim + 2*(Math.max(maxNumPorts+3, 5))*(Math.max(maxWireWidth,maxTurnDim));
         this.halfCellSize = cellSize/2;
         System.out.println("CellSize: " + cellSize);
         System.out.println("halfCellSize: " + halfCellSize);
@@ -260,6 +260,7 @@ public class GadgetPlacer {
                     }
                     Location turnIn = turn.getInput(0);
                     Location turnOut = turn.getOutput(0);
+
                     int x = target.getX() - finalTurnDir.getX() - getOutInDist(turn, true, flipped) ;
                     int y = target.getY() - finalTurnDir.getY() -  getOutInDist(turn, false, flipped) ;
                     if(flipped){
@@ -359,21 +360,14 @@ public class GadgetPlacer {
             return turn1;
         }
         else{
-            System.out.println("Making Same dir wire 4turn-case - Target:" + target);
-            System.out.println("flipped: " + flipped);
-            System.out.println("Generating turn " + finalTurnDir + " " + inDir);
-            System.out.println("     Target " + new Location(thirdTurnOutX, thirdTurnOutY) );
+
             GadgetGroup sub = generateTurnWire(finalTurnDir, inDir, new Location(thirdTurnOutX, thirdTurnOutY), true);
             GadgetGroup turn3 = new GadgetGroup(thirdTurn);
-            System.out.println("   Final Turn : " + thirdTurn.getInput(0) + " " + thirdTurn.getOutput(0));
             turn3.addGroup(sub, getAlignmentOffset(sub.getBaseGadget(), 0, thirdTurn, 0, true));
-            System.out.println("   Straight wire Direction " + inDir.opposite() + " length : " + minWireLength);
             GadgetGroup temp = appendToStraightWire(inDir.opposite(), minWireLength, turn3, 0, true);
             GadgetGroup turn2 = new GadgetGroup(secondTurn);
             turn2.addGroup(temp, getAlignmentOffset(temp.getBaseGadget(), 0, secondTurn, 0, true));
-            System.out.println("  Second Turn : " + secondTurn.getInput(0) + " " + secondTurn.getOutput(0));
             GadgetGroup temp2 = appendToStraightWire(initTurnDir.opposite(), cutoff, turn2, 0, true);
-            System.out.println("  Second Straight wire Direction " + initTurnDir.opposite() + " length : " + cutoff);
             GadgetGroup turn1 = new GadgetGroup(firstTurn);
             turn1.addGroup(temp2, getAlignmentOffset(temp2.getBaseGadget(), 0, firstTurn, 0, true));
             return turn1;
@@ -667,7 +661,7 @@ public class GadgetPlacer {
             switch (outputDir) {
                 case NORTH:
                     target = new Location(halfCellSize, 0);
-                    offsetLength =centerOffset;
+                    offsetLength = maxWireWidth + maxTurnDim;
                     offset = new Location(0, offsetLength);
 
                     break;

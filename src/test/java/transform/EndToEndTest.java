@@ -35,6 +35,7 @@ public class EndToEndTest {
         Gadget split = parser.parseGadget(new File(getClass().getResource("circuit/split.txt").getFile()));
         Gadget end = parser.parseGadget(new File(getClass().getResource("circuit/end.txt").getFile()));
         Gadget wire = parser.parseGadget(new File(getClass().getResource("circuit/wire.txt").getFile()));
+        Gadget wire2 = parser.parseGadget(new File(getClass().getResource("circuit/wire2.txt").getFile()));
         Gadget turn = parser.parseGadget(new File(getClass().getResource("circuit/turn.txt").getFile()));
         Gadget crossover = parser.parseGadget(new File(getClass().getResource("circuit/crossover.txt").getFile()));
         Gadget empty = parser.parseGadget(new File(getClass().getResource("circuit/empty.txt").getFile()));
@@ -46,7 +47,7 @@ public class EndToEndTest {
         placer.place();
         System.out.println(placer.getGrid());
         GadgetPlacer gadgetPlacer = new GadgetPlacer(
-            ImmutableList.of(wire),
+            ImmutableList.of(wire, wire2),
             turn,
             crossover,
             empty,
