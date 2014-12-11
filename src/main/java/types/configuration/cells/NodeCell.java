@@ -7,9 +7,11 @@ import java.util.List;
 
 public class NodeCell implements Cell {
     private final String name;
+    private final ImmutableList<Integer> id;
 
-    public NodeCell(String name) {
+    public NodeCell(String name, List<Integer> id) {
         this.name = name;
+        this.id = ImmutableList.copyOf(id);
     }
 
     @Override
@@ -45,6 +47,11 @@ public class NodeCell implements Cell {
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public List<Integer> getId() {
+        return id;
     }
 
     @Override

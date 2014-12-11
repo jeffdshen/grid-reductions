@@ -1,5 +1,6 @@
 package transform;
 
+import com.google.common.collect.ImmutableList;
 import org.testng.annotations.Test;
 import parser.GadgetParser;
 import types.Direction;
@@ -95,13 +96,14 @@ public class GadgetPlacerTest {
 
         Map<Direction, Integer> ports = new HashMap<>();
 
+        ImmutableList<Integer> dummyId = ImmutableList.of();
         ports.put(Direction.WEST, 0);
-        biggerGrid.put(new PortCell("AND", inputDirs, new HashSet<Direction>(), ports), new Location(1, 0));
-        biggerGrid.put(new NodeCell("AND"), new Location(1,1));
+        biggerGrid.put(new PortCell("AND", dummyId, inputDirs, new HashSet<Direction>(), ports), new Location(1, 0));
+        biggerGrid.put(new NodeCell("AND", dummyId), new Location(1,1));
         ports.put(Direction.WEST,1);
         ports.put(Direction.EAST, 0);
 //        biggerGrid.put(new PortCell("AND", new HashSet<Direction>(), outputDirs, ports), new Location(1, 1));
-        biggerGrid.put(new PortCell("AND", inputDirs, outputDirs, ports), new Location(1, 2));
+        biggerGrid.put(new PortCell("AND", dummyId, inputDirs, outputDirs, ports), new Location(1, 2));
 
         biggerGrid.put(new CrossoverCell(Direction.SOUTH, Direction.EAST), new Location(0,0));
         biggerGrid.put(new TurnCell(Direction.NORTH, Direction.EAST), new Location(0,2));

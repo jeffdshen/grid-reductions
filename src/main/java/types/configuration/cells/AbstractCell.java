@@ -6,6 +6,7 @@ import types.Direction;
 import types.configuration.nodes.Port;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractCell implements Cell {
@@ -81,6 +82,11 @@ public abstract class AbstractCell implements Cell {
 
     @Override
     public String getName() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public List<Integer> getId() {
         throw new UnsupportedOperationException();
     }
 

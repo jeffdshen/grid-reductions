@@ -12,8 +12,10 @@ import types.configuration.cells.Cell;
 import types.configuration.cells.NodeCell;
 import types.configuration.cells.PortCell;
 
+import java.util.List;
+
 public class GadgetConverter {
-    public GridConfiguration toGridConfiguration(Gadget g) {
+    public GridConfiguration toGridConfiguration(Gadget g, List<Integer> id) {
         int sizeX = 1;
         int sizeY = 1;
         for (Direction d : Direction.values()) {
@@ -28,7 +30,7 @@ public class GadgetConverter {
             sizeY = Math.max(sizeY, count * Math.abs(step.getY()));
         }
 
-        GridConfiguration grid = new GridConfiguration(new NodeCell(g.getName()), sizeX, sizeY);
+        GridConfiguration grid = new GridConfiguration(new NodeCell(g.getName(), id), sizeX, sizeY);
         for (Direction d : Direction.values()) {
             Direction step = d.clockwise();
             Location gadgetLoc = getStart(g, d, step);
@@ -63,7 +65,7 @@ public class GadgetConverter {
                     portsBuilder.put(d, g.getOutputNumber(gadgetLoc));
                 }
 
-                grid.put(new PortCell(c.getName(), inputs, outputs, portsBuilder.build()), loc);
+                grid.put(new PortCell(c.getName(), id, inputs, outputs, portsBuilder.build()), loc);
             }
         }
 
@@ -71,7 +73,7 @@ public class GadgetConverter {
         return grid;
     }
 
-    private Location getStart(Grid g, Direction side, Direction step) {
+    private static Location getStart(Grid g, Direction side, Direction step) {
         Location[] corners = new Location[]{
                 new Location(0, 0),
                 new Location(0, g.getSizeY() - 1),

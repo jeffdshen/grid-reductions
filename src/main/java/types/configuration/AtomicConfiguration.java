@@ -9,9 +9,9 @@ import java.util.Set;
 import java.util.Stack;
 
 public class AtomicConfiguration {
-    public ImmutableMap<String, Configuration> subs;
-    public Configuration config;
-    public ImmutableSet<String> atoms;
+    private ImmutableMap<String, Configuration> subs;
+    private Configuration config;
+    private ImmutableSet<String> atoms;
 
     public AtomicConfiguration(Configuration config, Iterable<Configuration> subs, Set<String> atoms) {
         ImmutableMap.Builder<String, Configuration> builder = ImmutableMap.builder();
@@ -52,16 +52,17 @@ public class AtomicConfiguration {
         Stack<Node> nodeStack = new Stack<>();
         Stack<Integer> context = new Stack<>();
 
+        // node, context at the top of stack always represents config at top of stack
         for (int node : port.getContext()) {
             nodeStack.push(configStack.peek().getNode(node));
             configStack.push(subs.get(nodeStack.peek().getName()));
             context.push(node);
         }
 
-        // come back up if at an input or output node
         Configuration curConfig = configStack.peek();
         Port curPort = curConfig.getPort(port.getPort());
 
+        // come back up if at an input or output node
         while (curConfig.getNode(curPort.getId()).getType() != NodeType.LABELLED) {
             if (context.empty()) {
                 // cant go any farther, just return the top level input or output node
@@ -75,9 +76,30 @@ public class AtomicConfiguration {
             } else {
                 curPort = curNode.getInputPort(curPort.getPortNumber());
             }
+            curPort = curConfig.getPort(curPort);
+
             nodeStack.pop();
             context.pop();
         }
+
+        // go into a substitution
+        while (subs.containsKey(curConfig.getNode(curPort.getId()).getName())) {
+            context.push(curPort.getId());
+            nodeStack.push(curConfig.getNode(curPort.getId()));
+
+            Node curNode = nodeStack.peek();
+            curConfig = subs.get(curNode.getName());
+            if (curPort.isInput()) {
+                curNode = curConfig.getInput();
+                curPort = curNode.getOutputPort(curPort.getPortNumber());
+            } else {
+                curNode = curConfig.getOutput();
+                curPort = curNode.getInputPort(curPort.getPortNumber());
+            }
+            curPort = curConfig.getPort(curPort);
+            configStack.push(curConfig);
+        }
+
         return new AtomicPort(context, curPort);
     }
 
@@ -109,7 +131,7 @@ public class AtomicConfiguration {
         @Override
         public AtomicNode next() {
             AtomicNode node = new AtomicNode(context, iterators.peek().next());
-            load();
+            hasNext = load();
             return node;
         }
 
@@ -137,8 +159,14 @@ public class AtomicConfiguration {
 
                         context.pop();
                         it = iterators.peek();
+                        it.next();
                         break;
                     case LABELLED:
+                        if (!subs.containsKey(next.getName())) {
+                            throw new IllegalStateException(
+                                String.format("No substitution found for gadget: %s", next.getName())
+                            );
+                        }
                         iterators.push(Iterators.peekingIterator(subs.get(next.getName()).getNodes().iterator()));
                         context.push(next.getId());
                         it = iterators.peek();

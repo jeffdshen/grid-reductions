@@ -13,7 +13,7 @@ public class GridExpander {
 
     /**
      * Expands one direction of the grid
-     * @param grid
+     * @param grid the grid
      * @param isX is expanding the x direction
      */
     private void expandX(GridConfiguration grid, boolean isX) {
@@ -27,8 +27,10 @@ public class GridExpander {
         // determine which x-rows need to be expanded
         for (int i = 0; i < sizeX - 1; i++) {
             for (int j = 0; j < sizeY; j++) {
-                Cell c1 = grid.getCell(i, j);
-                Cell c2 = grid.getCell(i + dir.getX(), j + dir.getY());
+                int x = isX ? i : j;
+                int y = isX ? j : i;
+                Cell c1 = grid.getCell(x, y);
+                Cell c2 = grid.getCell(x + dir.getX(), y + dir.getY());
                 if (conflict(dir, c1, c2)) {
                     conflicts[i] = true;
                     count++;
@@ -53,10 +55,10 @@ public class GridExpander {
             if (i < conflicts.length && conflicts[i]) {
                 for (int j = 0; j < sizeY; j++) {
                     if (isX) {
-                        cells[x][j] = expand(dir, grid.getCell(x, j), grid.getCell(x + dir.getX(), j + dir.getY()));
+                        cells[x][j] = expand(dir, grid.getCell(i, j), grid.getCell(i + dir.getX(), j + dir.getY()));
                     } else {
                         //noinspection SuspiciousNameCombination
-                        cells[j][x] = expand(dir, grid.getCell(j, x), grid.getCell(j + dir.getX(), x + dir.getY()));
+                        cells[j][x] = expand(dir, grid.getCell(j, i), grid.getCell(j + dir.getX(), i + dir.getY()));
                     }
                 }
                 x++;
@@ -70,9 +72,12 @@ public class GridExpander {
         if (!isWireOrTurn(c1) && !isWireOrTurn(c2)) {
             return false;
         }
+
+        if (c1.getCellType() == CellType.EMPTY || c2.getCellType() == CellType.EMPTY) {
+            return false;
+        }
+
         switch (c1.getCellType()) {
-            case EMPTY:
-                return false;
             case WIRE:
             case TURN:
                 // if connection, return false
@@ -166,7 +171,7 @@ public class GridExpander {
                         return expand(d.opposite(), c2, c1);
                     case PORT:
                         Preconditions.checkArgument(c1.getName().equals(c2.getName()));
-                        return new NodeCell(c1.getName());
+                        return new NodeCell(c1.getName(), c1.getId());
                     default:
                         throw new IllegalArgumentException();
                 }

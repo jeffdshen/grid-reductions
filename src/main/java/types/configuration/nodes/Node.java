@@ -67,4 +67,10 @@ public class Node {
     public NodeType getType() {
         return type;
     }
+
+    @Override
+    public String toString() {
+        return getClass().getName() + "[name=" + name + ",id=" + id + ",type=" + type + "]";
+    }
+
 }

@@ -50,6 +50,11 @@ public class EmptyCell implements Cell {
     }
 
     @Override
+    public List<Integer> getId() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public boolean isOutput(Direction d) {
         return false;
     }

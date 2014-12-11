@@ -38,6 +38,8 @@ public class GridConfiguration implements Grid {
         Cell[][] newCells = getCellCopies(background, x, y);
         put(newCells, this, 0, 0);
         this.cells = newCells;
+        this.sizeX = x;
+        this.sizeY = y;
     }
 
     @Override

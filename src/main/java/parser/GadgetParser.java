@@ -30,12 +30,12 @@ public class GadgetParser {
      *
      * inputs and outputs have format xLoc,yLoc or (xLoc,yLoc)
      */
-    public Gadget parseGadget(File file) throws IOException{
+    public Gadget parseGadget(File file) throws IOException {
         String[][] cells;
         List<Location> inputs = new ArrayList<>();
         List<Location> outputs = new ArrayList<>();
 
-        try(BufferedReader br = new BufferedReader(new FileReader(file))){
+        try(BufferedReader br = new BufferedReader(new FileReader(file))) {
             String name = br.readLine();
             String[] dimensions = br.readLine().split(" ");
             int width = Integer.parseInt(dimensions[0]);
@@ -71,7 +71,9 @@ public class GadgetParser {
                     }
                 }
                 if(curX < width){
-                    System.err.println("Warning: only " + curX + " entries specified for row " + (curY + 1));
+                    System.err.println(
+                        String.format("File %s - Warning: only %s entries specified for row %s", file, curX, (curY + 1))
+                    );
                 }
                 curY++;
             }
@@ -80,10 +82,6 @@ public class GadgetParser {
             }
             return new Gadget(name, cells, inputs, outputs);
         }
-        catch(Exception e){
-            System.err.println("Error parsing the gadget file: " + e.getMessage());
-        }
-        return null;
     }
 
     private boolean inBounds(int x, int y, int width, int height){

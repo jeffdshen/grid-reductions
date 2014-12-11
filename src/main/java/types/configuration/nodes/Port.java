@@ -40,4 +40,9 @@ public class Port {
         hash = 71 * hash + this.port;
         return hash;
     }
+
+    @Override
+    public String toString() {
+        return getClass().getName() + "[id=" + id + ",input=" + input + ",port=" + port + "]";
+    }
 }

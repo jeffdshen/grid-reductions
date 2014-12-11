@@ -6,9 +6,6 @@ import types.configuration.nodes.*;
 import java.io.*;
 import java.util.*;
 
-/**
- * Created by kevin on 11/28/14.
- */
 public class ConfigurationParser {
 
     /**
@@ -36,14 +33,14 @@ public class ConfigurationParser {
      * The number of outputs from output node is assumed to be equal to # of inputs
      *
      */
-    public Configuration parseConfiguration(File file) throws Exception {
+    public Configuration parseConfiguration(File file) throws IOException {
         boolean hasInput = false;
         boolean hasOutput = false;
         int outputId = 0;
-        Map<Integer, Node> nodes = new HashMap<Integer, Node>();
-        Map<Integer, List<Port>> inputs = new HashMap<Integer, List<Port>>();
-        Set<Integer> visitedNodes = new HashSet<Integer>();
-        List<ConnectedNode> connectedNodes = new ArrayList<ConnectedNode>();
+        Map<Integer, Node> nodes = new HashMap<>();
+        Map<Integer, List<Port>> inputs = new HashMap<>();
+        Set<Integer> visitedNodes = new HashSet<>();
+        List<ConnectedNode> connectedNodes = new ArrayList<>();
         String cfgName;
 
         try(BufferedReader br = new BufferedReader(new FileReader(file))){
@@ -56,7 +53,7 @@ public class ConfigurationParser {
                 String[] tokens = line.split(" ");
                 if(tokens[0].equals("node")){
                     if(tokens.length != 5){
-                        throw new Exception("Parse Error: Invalid line " + line);
+                        throw new RuntimeException("Parse Error: Invalid line " + line);
                     }
                     int id = Integer.parseInt(tokens[1]);
                     String name = tokens[2];
@@ -70,7 +67,7 @@ public class ConfigurationParser {
                 }
                 else if(tokens[0].equals("input")){
                     if(hasInput){
-                        throw new Exception("Parse Error: Cannot have multiple inputs");
+                        throw new RuntimeException("Parse Error: Cannot have multiple inputs");
                     }
                     int id = Integer.parseInt(tokens[1]);
                     int numPorts = Integer.parseInt(tokens[2]);
@@ -83,7 +80,7 @@ public class ConfigurationParser {
                 }
                 else if (tokens[0].equals("output")){
                     if(hasOutput){
-                        throw new Exception("Parse Error: Cannot have multiple outputs");
+                        throw new RuntimeException("Parse Error: Cannot have multiple outputs");
                     }
                     int id = Integer.parseInt(tokens[1]);
                     int numPorts = Integer.parseInt(tokens[2]);
@@ -96,18 +93,18 @@ public class ConfigurationParser {
                 else{
                     // defining connections
                     int id = Integer.parseInt(tokens[0]);
-                    List<Port> outputPorts = new ArrayList<Port>();
+                    List<Port> outputPorts = new ArrayList<>();
                     for(int i = 1; i<tokens.length; i++){
                         String[] info = tokens[i].replaceAll("[()]", "").split(",");
                         if(info.length != 2) {
-                            throw new Exception("Parse Error: Invalid format for an output-port-connection " + line);
+                            throw new RuntimeException("Parse Error: Invalid format for an output-port-connection " + line);
                         }
                         int outId = Integer.parseInt(info[0]);
                         int portNum = Integer.parseInt(info[1]);
 
                         //check topological ordering
                         if(visitedNodes.contains(outId)){
-                            throw new Exception("Parse Error: output-port specs must be given in topological order");
+                            throw new RuntimeException("Parse Error: output-port specs must be given in topological order");
                         }
                         outputPorts.add(nodes.get(outId).getInputPort(portNum));
                         inputs.get(outId).set(portNum, nodes.get(id).getOutputPort(i-1));
@@ -117,7 +114,7 @@ public class ConfigurationParser {
                 }
             }
             if(!hasOutput && !hasInput){
-                throw new Exception("Parse Error: Must define an input and output node");
+                throw new RuntimeException("Parse Error: Must define an input and output node");
             }
         }
         if(!visitedNodes.contains(outputId)) {
@@ -127,7 +124,7 @@ public class ConfigurationParser {
     }
 
     public List<Port> getNullList(int length){
-        List<Port> nullPorts = new ArrayList<Port>();
+        List<Port> nullPorts = new ArrayList<>();
         for(int i = 0; i < length; i++){
             nullPorts.add(null);
         }

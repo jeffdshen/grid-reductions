@@ -1,19 +1,18 @@
 package types.configuration.nodes;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 
 import java.util.List;
 
 public class AtomicNode {
-    private final Iterable<Integer> id;
+    private final ImmutableList<Integer> id;
     private final ImmutableList<Integer> context;
     private final Node node;
 
     public AtomicNode(Iterable<Integer> context, Node node) {
         this.context = ImmutableList.copyOf(context);
         this.node = node;
-        this.id = Iterables.concat(context, ImmutableList.of(node.getId()));
+        this.id = ImmutableList.<Integer>builder().addAll(context).add(node.getId()).build();
     }
 
     public List<Integer> getContext() {
@@ -40,7 +39,7 @@ public class AtomicNode {
         return node.outputSize();
     }
 
-    public Iterable<Integer> getId() {
+    public List<Integer> getId() {
         return id;
     }
 
@@ -51,4 +50,10 @@ public class AtomicNode {
     public NodeType getType() {
         return node.getType();
     }
+
+    @Override
+    public String toString() {
+        return getClass().getName() + "[context=" + context + ",node=" + node + "]";
+    }
+
 }
