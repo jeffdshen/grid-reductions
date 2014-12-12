@@ -17,7 +17,10 @@ import types.configuration.AtomicConfiguration;
 import types.configuration.Configuration;
 
 import java.io.*;
-import java.util.Arrays;
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.util.*;
 import java.util.List;
 
 public class Main {
@@ -26,7 +29,6 @@ public class Main {
     ) throws Exception {
         SATParser s = new SATParser();
         Configuration c = s.parseSAT(expr);
-
         ImmutableMap<String, Gadget> gadgets = getGadgets(gadgetFiles);
         Iterable<Configuration> configs = getConfigs(configFiles);
         List<Gadget> wires = getWires(wireFiles);
@@ -45,6 +47,7 @@ public class Main {
         try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outFile)))) {
             printStringArray(out, gadgetPlacer.place(placer.getGrid()));
         }
+//        visualizeAkari(gadgetPlacer.place(placer.getGrid()));
     }
 
     public List<Gadget> getWires(Iterable<File> wires) throws IOException {
@@ -142,4 +145,55 @@ public class Main {
             out.println();
         }
     }
+    public void visualizeAkari(String[][] grid) throws IOException {
+        BufferedImage zero = ImageIO.read(new File(Main.class.getResource("Akari/images/zero10.png").getFile()));
+        BufferedImage one = ImageIO.read(new File(Main.class.getResource("Akari/images/one10.png").getFile()));
+        BufferedImage two = ImageIO.read(new File(Main.class.getResource("Akari/images/two10.png").getFile()));
+        BufferedImage blank = ImageIO.read(new File(Main.class.getResource("Akari/images/blank10.png").getFile()));
+        BufferedImage black = ImageIO.read(new File(Main.class.getResource("Akari/images/black10.png").getFile()));
+        Map<String, BufferedImage> l = new HashMap<>();
+        l.put("0", zero); l.put("1",zero); l.put("2", two); l.put("x", black); l.put(".", blank);
+
+        int w = 0;
+        int h = 0;
+        for(BufferedImage b : l.values()){
+            w = Math.max(w, b.getWidth());
+            h = Math.max(h, b.getHeight());
+        }
+        int xmax = grid.length;
+        int ymax = grid[0].length;
+
+        int splitsize = 1600;
+
+        for(int xsplit = 0; xsplit < xmax/splitsize +1; xsplit ++){
+            for(int ysplit = 0; ysplit<ymax/splitsize +1; ysplit ++){
+                //split into multiple chunks
+                int xwidth = Math.min(splitsize, xmax-xsplit*splitsize);
+                int ywidth = Math.min(splitsize, ymax-ysplit*splitsize);
+
+                BufferedImage stitched = new BufferedImage(w*xwidth, h*ywidth, BufferedImage.TYPE_INT_ARGB);
+
+                Graphics g = stitched.getGraphics();
+                for(int i = xsplit*splitsize; i < Math.min((xsplit+1)*splitsize, xmax); i++){
+                    for(int j = ysplit*splitsize; j < Math.min((ysplit+1)*splitsize, ymax); j++){
+                        if(l.containsKey(grid[i][j])) {
+                            g.drawImage(l.get(grid[i][j]), w * (i % splitsize), h * (j%splitsize), null);
+                        }
+                        else{
+                            System.err.println("Visualization error: unknown string in output grid.");
+                        }
+                    }
+                }
+                // Save as new image
+                String name = "stitched2-"+xsplit+"-"+ysplit+".png";
+                System.out.println(name);
+                File file = new File(name);
+                ImageIO.write(stitched, "PNG", file);
+            }
+        }
+
+
+    }
+
+
 }
