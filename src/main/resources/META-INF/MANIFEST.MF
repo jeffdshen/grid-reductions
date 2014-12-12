@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Class-Path: testng-6.8.jar junit-4.10.jar guava-18.0.jar hamcrest-core
+ -1.1.jar snakeyaml-1.6.jar testng.jar bsh-2.0b4.jar commons-cli-1.2.j
+ ar jcommander-1.27.jar
+Main-Class: Main
+

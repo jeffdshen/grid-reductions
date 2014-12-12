@@ -8,9 +8,13 @@ import java.util.*;
 
 public class ConfigurationParser {
 
+    public Configuration parseConfiguration(File file) throws IOException {
+        return parseConfiguration(new FileReader(file));
+    }
+
     /**
      * Parse a configuration
-     * @param file text file
+     * @param reader the input
      * @return
      *
      * File format should be "name" one of
@@ -33,7 +37,7 @@ public class ConfigurationParser {
      * The number of outputs from output node is assumed to be equal to # of inputs
      *
      */
-    public Configuration parseConfiguration(File file) throws IOException {
+    public Configuration parseConfiguration(Reader reader) throws IOException {
         boolean hasInput = false;
         boolean hasOutput = false;
         int outputId = 0;
@@ -43,7 +47,7 @@ public class ConfigurationParser {
         List<ConnectedNode> connectedNodes = new ArrayList<>();
         String cfgName;
 
-        try(BufferedReader br = new BufferedReader(new FileReader(file))){
+        try(BufferedReader br = new BufferedReader(reader)){
             String line = br.readLine();
             cfgName = line;
             while((line = br.readLine()) != null){

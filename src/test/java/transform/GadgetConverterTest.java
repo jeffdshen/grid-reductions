@@ -17,7 +17,7 @@ import static org.testng.Assert.*;
 public class GadgetConverterTest {
     @Test
     public void testToGridConfiguration() throws Exception {
-        URL resource = getClass().getResource("and.txt");
+        URL resource = getClass().getResource("circuit/and.txt");
         assertNotNull(resource, "Test file missing");
         GadgetParser parser = new GadgetParser();
         Gadget gadget = parser.parseGadget(new File(resource.getFile()));

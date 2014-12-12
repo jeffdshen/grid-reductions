@@ -111,8 +111,8 @@ public class GadgetPlacerTest {
 //        System.out.println("FAT GADGET");
 //        System.out.println(getStringArray(fatPlacer.place(biggerGrid)));
 
-        System.out.println("SHORT GADGET");
-        System.out.println(getStringArray(shortPlacer.place(biggerGrid)));
+//        System.out.println("SHORT GADGET");
+//        System.out.println(getStringArray(shortPlacer.place(biggerGrid)));
     }
 
     public String getStringArray(String[][] array){
