@@ -151,8 +151,7 @@ public class Main {
         BufferedImage two = ImageIO.read(new File(Main.class.getResource("Akari/images/two10.png").getFile()));
         BufferedImage blank = ImageIO.read(new File(Main.class.getResource("Akari/images/blank10.png").getFile()));
         BufferedImage black = ImageIO.read(new File(Main.class.getResource("Akari/images/black10.png").getFile()));
-        Map<String, BufferedImage> l = new HashMap<>();
-        l.put("0", zero); l.put("1",zero); l.put("2", two); l.put("x", black); l.put(".", blank);
+        Map<String, BufferedImage> l = ImmutableMap.of("0", zero, "1", one, "2", two, "x", black, ".", blank);
 
         int w = 0;
         int h = 0;

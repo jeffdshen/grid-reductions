@@ -1,7 +1,0 @@
-WIRE
-7 3
-(0,1)
-(6,1)
-x x x x x x x
-. 1 . . . 1 .
-x x x x x x x
