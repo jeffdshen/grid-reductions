@@ -1,11 +1,1 @@
-OR
-5 7
-(0,5) (4,5)
-(2,6)
-x x x x x
-x x . x x
-x x . x x
-x . 1 . x
-x . x . x
-. 2 . 2 .
-x 0 . 0 x
+OR5	7_	_	_	_	_	_	__	x	x	x	x	x	__	x	x	.	x	x	__	x	x	.	x	x	__	x	.	1	.	x	__	x	.	x	.	x	_I_0	.	2	.	2	.	I_1_	x	0	.	0	x	__	_	_	O_0	_	_	_

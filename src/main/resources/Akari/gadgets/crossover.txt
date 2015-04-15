@@ -1,29 +1,1 @@
-CROSSOVER
-20 25
-(1,0) (0,19)
-(18,24) (19,5)
-0 . 0 x x 0 0 0 0 0 0 0 0 0 x x x x x x
-0 . 0 x 1 . . . . . . . . . . 1 x x x x
-0 . 0 0 . . 0 0 0 0 0 0 0 0 . . x x x x
-0 . 0 0 . 0 x x x x x x x x x . x x x x
-x . . 1 . x x x x x x x x . . 2 0 0 0 0
-x 1 . . 2 . . x x x x . . 1 x . . . . .
-x x x 1 . x x x x x x x x . . 2 0 0 0 0
-x x x x . . 0 x x x . . . x x . x x x x
-x x x x 1 . . . 1 x x x x 0 . . x x x x
-x x x x x x 0 . . x x 1 . . . 1 x x x x
-x x x x x x x x . x x . . 0 x x x x x x
-x x x x x x . . 2 0 1 . x x x x x x x x
-x x x x . . 1 x . . . 2 x x x x x x x x
-x x x x x x . . 2 0 1 . x x x x x x x x
-x x x x x x x x . x x . . 0 x x x x x x
-x x x x x x 0 . . x x 1 . . . 1 x x x x
-x x x x 1 . . . 1 x x x x 0 . . x x x x
-x x x x . . 0 x x x x x x x x . x x x x
-0 0 0 1 . x x x x x x x x . . 2 0 x x x
-. . . . 2 . . x x x x . . 1 x . . . 1 x
-0 0 0 1 . x x x x x x x x . . 2 0 . . x
-x x x 0 . 0 x x x x x x x x x . x 0 . 0
-x x x x . . 0 0 0 0 0 0 0 0 . . x 0 . 0
-x x x x 1 . . . . . . . . . . 1 x 0 . 0
-x x x x x x 0 0 0 0 0 0 0 0 x x x 0 . 0
+CROSSOVER20	25_	_	I_0	_	_	_	_	_	_	_	_	_	_	_	_	_	_	_	_	_	_	__	0   .	0	x	x	0	0	0	0	0	0	0	0	0	x	x	x	x	x	x	__	0	.	0	x	1	.	.	.	.	.	.	.	.	.	.	1	x	x	x	x	__	0	.	0	0	.	.	0	0	0	0	0	0	0	0	.	.	x	x	x	x	__	0	.	0	0	.	0	x	x	x	x	x	x	x	x	x	.	x	x	x	x	__	x	.	.	1	.	x	x	x	x	x	x	x	x	.	.	2	0	0	0	0	__	x	1	.	.	2	.	.	x	x	x	x	.	.	1	x	.	.	.	.	.	O_1_	x	x	x	1	.	x	x	x	x	x	x	x	x	.	.	2	0	0	0	0	__	x	x	x	x	.	.	0	x	x	x	.	.	.	x	x	.	x	x	x	x	__	x	x	x	x	1	.	.	.	1	x	x	x	x	0	.	.	x	x	x	x	__	x	x	x	x	x	x	0	.	.	x	x	1	.	.	.	1	x	x	x	x	__	x	x	x	x	x	x	x	x	.	x	x	.	.	0	x	x	x	x	x	x	__	x	x	x	x	x	x	.	.	2	0	1	.	x	x	x	x	x	x	x	x	__	x	x	x	x	.	.	1	x	.	.	.	2	x	x	x	x	x	x	x	x	__	x	x	x	x	x	x	.	.	2	0	1	.	x	x	x	x	x	x	x	x	__	x	x	x	x	x	x	x	x	.	x	x	.	.	0	x	x	x	x	x	x	__	x	x	x	x	x	x	0	.	.	x	x	1	.	.	.	1	x	x	x	x	__	x	x	x	x	1	.	.	.	1	x	x	x	x	0	.	.	x	x	x	x	__	x	x	x	x	.	.	0	x	x	x	x	x	x	x	x	.	x	x	x	x	__	0	0	0	1	.	x	x	x	x	x	x	x	x	.	.	2	0	x	x	x	_I_1	.	.	.	.	2	.	.	x	x	x	x	.	.	1	x	.	.	.	1	x	__	0	0	0	1	.	x	x	x	x	x	x	x	x	.	.	2	0	.	.	x	__	x	x	x	0	.	0	x	x	x	x	x	x	x	x	x	.	x	0	.	0	__	x	x	x	x	.	.	0	0	0	0	0	0	0	0	.	.	x	0	.	0	__	x	x	x	x	1	.	.	.	.	.	.	.	.	.	.	1	x	0	.	0	__	x	x	x	x	x	x	0	0	0	0	0	0	0	0	x	x	x	0	.	0	__	_	_	_	_	_	_	_	_	_	_	_	_	_	_	_	_	_	_	O_0 _	_

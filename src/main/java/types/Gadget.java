@@ -13,10 +13,10 @@ public class Gadget implements Grid {
     private final int sizeX;
     private final int sizeY;
     private final String name;
-    private final ImmutableBiMap<Integer, Location> inputs;
-    private final ImmutableBiMap<Integer, Location> outputs;
+    private final ImmutableBiMap<Integer, Side> inputs;
+    private final ImmutableBiMap<Integer, Side> outputs;
 
-    public Gadget(String name, String[][] cells, List<Location> inputs, List<Location> outputs) {
+    public Gadget(String name, String[][] cells, List<Side> inputs, List<Side> outputs) {
         Preconditions.checkNotNull(cells);
         Preconditions.checkArgument(cells.length > 0);
         Preconditions.checkArgument(cells[0].length > 0);
@@ -30,11 +30,11 @@ public class Gadget implements Grid {
         this.outputs = getLocationMap(outputs);
     }
 
-    private static ImmutableBiMap<Integer, Location> getLocationMap(List<Location> locs) {
-        ImmutableBiMap.Builder<Integer, Location> builder = ImmutableBiMap.builder();
+    private static ImmutableBiMap<Integer, Side> getLocationMap(List<Side> sides) {
+        ImmutableBiMap.Builder<Integer, Side> builder = ImmutableBiMap.builder();
         int i = 0;
-        for (Location loc : locs) {
-            builder.put(i, loc);
+        for (Side side : sides) {
+            builder.put(i, side);
             i++;
         }
         return builder.build();
@@ -82,35 +82,42 @@ public class Gadget implements Grid {
         return outputs.size();
     }
 
-    public boolean isInput(Location loc) {
-        return inputs.containsValue(loc);
+    public boolean isInput(Side side) {
+        return inputs.containsValue(side);
     }
 
-    public boolean isInput(int x, int y) {
-        return isInput(new Location(x, y));
+    public boolean isInput(Location loc, Direction dir) {
+        return inputs.containsValue(new Side(loc, dir));
     }
 
-    public int getInputNumber(Location loc) {
-        return inputs.inverse().get(loc);
+    public boolean isInput(int x, int y, Direction dir) {
+        return isInput(new Location(x, y), dir);
     }
 
-    public boolean isOutput(Location loc) {
-        return outputs.containsValue(loc);
+    public int getInputNumber(Side side) {
+        return inputs.inverse().get(side);
     }
 
-    public boolean isOutput(int x, int y) {
-        return isOutput(new Location(x, y));
+    public boolean isOutput(Side side) {
+        return outputs.containsValue(side);
     }
 
-    public int getOutputNumber(Location loc) {
-        return outputs.inverse().get(loc);
+    public boolean isOutput(Location loc, Direction dir) {
+        return isOutput(new Side(loc, dir));
+    }
+    public boolean isOutput(int x, int y, Direction dir) {
+        return isOutput(new Location(x, y), dir);
     }
 
-    public Location getInput(int index) {
+    public int getOutputNumber(Side side) {
+        return outputs.inverse().get(side);
+    }
+
+    public Side getInput(int index) {
         return inputs.get(index);
     }
 
-    public Location getOutput(int index) {
+    public Side getOutput(int index) {
         return outputs.get(index);
     }
 

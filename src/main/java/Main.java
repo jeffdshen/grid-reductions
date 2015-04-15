@@ -1,4 +1,3 @@
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
@@ -9,19 +8,22 @@ import org.apache.commons.cli.Options;
 import parser.ConfigurationParser;
 import parser.GadgetParser;
 import parser.SATParser;
+import postprocessor.ImagePostProcessor;
 import transform.ConfigurationResolver;
 import transform.GadgetPlacer;
 import transform.GridPlacer;
 import types.Gadget;
 import types.configuration.AtomicConfiguration;
 import types.configuration.Configuration;
+import utils.ResourceUtils;
 
-import java.io.*;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.util.*;
+import java.io.*;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class Main {
     public void run(
@@ -47,7 +49,7 @@ public class Main {
         try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outFile)))) {
             printStringArray(out, gadgetPlacer.place(placer.getGrid()));
         }
-//        visualizeAkari(gadgetPlacer.place(placer.getGrid()));
+        visualizeAkari1600(gadgetPlacer.place(placer.getGrid()));
     }
 
     public List<Gadget> getWires(Iterable<File> wires) throws IOException {
@@ -145,12 +147,37 @@ public class Main {
             out.println();
         }
     }
+
+    public String[][] crop(String[][] grid, int x, int y, int toX, int toY) {
+        toX = Math.min(toX, grid.length);
+        toY = Math.min(toY, grid[0].length);
+        String[][] cropped = new String[toX - x][toY - y];
+        for (int i = x; i < toX; i++) {
+            for (int j = y; j < toY; j++) {
+                cropped[i - x][j - y] = grid[i][j];
+            }
+        }
+        return cropped;
+    }
+
+    public void visualizeAkari1600(String[][] grid) throws IOException {
+        BufferedImage zero = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/zero10.png"));
+        BufferedImage one = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/one10.png"));
+        BufferedImage two = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/two10.png"));
+        BufferedImage blank = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/blank10.png"));
+        BufferedImage black = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/black10.png"));
+        Map<String, BufferedImage> l = ImmutableMap.of("0", zero, "1", one, "2", two, "x", black, ".", blank);
+
+        new ImagePostProcessor(l, 10, 10, ResourceUtils.getAbsoluteFile(getClass(), "0-1600x0-1600.png"))
+            .process(crop(grid, 0, 0, 1600, 1600));
+    }
+
     public void visualizeAkari(String[][] grid) throws IOException {
-        BufferedImage zero = ImageIO.read(new File(Main.class.getResource("Akari/images/zero10.png").getFile()));
-        BufferedImage one = ImageIO.read(new File(Main.class.getResource("Akari/images/one10.png").getFile()));
-        BufferedImage two = ImageIO.read(new File(Main.class.getResource("Akari/images/two10.png").getFile()));
-        BufferedImage blank = ImageIO.read(new File(Main.class.getResource("Akari/images/blank10.png").getFile()));
-        BufferedImage black = ImageIO.read(new File(Main.class.getResource("Akari/images/black10.png").getFile()));
+        BufferedImage zero = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/zero10.png"));
+        BufferedImage one = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/one10.png"));
+        BufferedImage two = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/two10.png"));
+        BufferedImage blank = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/blank10.png"));
+        BufferedImage black = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/black10.png"));
         Map<String, BufferedImage> l = ImmutableMap.of("0", zero, "1", one, "2", two, "x", black, ".", blank);
 
         int w = 0;

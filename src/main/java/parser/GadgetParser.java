@@ -4,8 +4,10 @@ import com.google.common.base.CharMatcher;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Ordering;
 import org.apache.log4j.Logger;
+import types.Direction;
 import types.Gadget;
 import types.Location;
+import types.Side;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -32,7 +34,7 @@ public class GadgetParser {
      * line 2: width height
      * line 3: space separated cells.
      *
-     * The outer boundary of the cells must either be an X to represent no input or output port,
+     * The outer boundary of the cells must either be an _ to represent no input or output port,
      * an I_ followed by the input number, or an O_ followed by the output number
      */
     public Gadget parseGadget(File file) {
@@ -53,9 +55,12 @@ public class GadgetParser {
         private final Reader reader;
         private final String gadgetId;
 
+        private int width;
+        private int height;
         private String[][] cells;
-        private Map<Integer, Location> inputs;
-        private Map<Integer, Location> outputs;
+        private Map<Integer, Side> inputs;
+        private Map<Integer, Side> outputs;
+
 
         private GadgetParserInstance (Reader reader, String gadgetId) {
             this.reader = reader;
@@ -110,7 +115,7 @@ public class GadgetParser {
         }
 
         private boolean parseBoundaryCell(String s, int x, int y) {
-            if (s.equals("X")) {
+            if (s.equals("_")) {
                 return false;
             }
 
@@ -120,8 +125,17 @@ public class GadgetParser {
                     error("Duplicate input number %d", port);
                     return true;
                 }
-                inputs.put(port, new Location(x, y));
-                return false;
+
+                Location loc = new Location(x, y);
+                for (Direction dir : Direction.values()) {
+                    if (inBounds(loc.add(dir))) {
+                        inputs.put(port, new Side(loc, dir).opposite());
+                        return false;
+                    }
+                }
+
+                error("Input cell at (%d, %d) not adjacent: \"%s\"", x + 1, y + 1, s);
+                return true;
             }
 
             if (s.startsWith("O_")) {
@@ -130,8 +144,17 @@ public class GadgetParser {
                     error("Duplicate output number %d", port);
                     return true;
                 }
-                outputs.put(port, new Location(x, y));
-                return false;
+
+                Location loc = new Location(x, y);
+                for (Direction dir : Direction.values()) {
+                    if (inBounds(loc.add(dir))) {
+                        outputs.put(port, new Side(loc, dir).opposite());
+                        return false;
+                    }
+                }
+
+                error("Output cell at (%d, %d) not adjacent: \"%s\"", x + 1, y + 1, s);
+                return true;
             }
 
             error("Unrecognized boundary cell: \"%s\"", s);
@@ -163,18 +186,18 @@ public class GadgetParser {
 
 
         private Gadget parseGadget() {
-            Splitter splitter = Splitter.on(CharMatcher.BREAKING_WHITESPACE).omitEmptyStrings();
+            Splitter splitter = Splitter.on(CharMatcher.BREAKING_WHITESPACE).omitEmptyStrings().trimResults();
 
             try(BufferedReader in = new BufferedReader(reader)) {
-                String name = in.readLine();
+                String name = in.readLine().trim();
                 List<String> dimensions = splitter.splitToList(in.readLine());
 
                 if (checkDimensions(dimensions)) {
                     return null;
                 }
 
-                int width = Integer.parseInt(dimensions.get(0));
-                int height = Integer.parseInt(dimensions.get(1));
+                width = Integer.parseInt(dimensions.get(0));
+                height = Integer.parseInt(dimensions.get(1));
 
                 cells = new String[width][height];
                 for (int i = 0; i < height + 2; i++) {
@@ -191,7 +214,7 @@ public class GadgetParser {
 
                     for (int j = 0; j < width + 2; j++) {
                         String cell = row.get(j);
-                        if (inBounds(j - 1, i - 1, width, height)) {
+                        if (inBounds(j - 1, i - 1)) {
                             if (parseInnerCell(cell, j - 1, i - 1)) {
                                 return null;
                             }
@@ -203,10 +226,10 @@ public class GadgetParser {
                     }
                 }
 
-                List<Location> inputList = new ArrayList<>();
-                List<Location> outputList = new ArrayList<>();
+                List<Side> inputList = new ArrayList<>();
+                List<Side> outputList = new ArrayList<>();
 
-                int maxInput = Ordering.<Integer>natural().max(inputs.keySet());
+                int maxInput = inputs.isEmpty() ? -1 : Ordering.<Integer>natural().max(inputs.keySet());
                 for (int i = 0; i <= maxInput; i++) {
                     if (checkInputs(i)) {
                         return null;
@@ -214,7 +237,7 @@ public class GadgetParser {
                     inputList.add(inputs.get(i));
                 }
 
-                int maxOutput = Ordering.<Integer>natural().max(outputs.keySet());
+                int maxOutput = outputs.isEmpty() ? -1 : Ordering.<Integer>natural().max(outputs.keySet());
                 for (int i = 0; i <= maxOutput; i++) {
                     if (checkOutputs(i)) {
                         return null;
@@ -232,7 +255,11 @@ public class GadgetParser {
             }
         }
 
-        private boolean inBounds(int x, int y, int width, int height){
+        private boolean inBounds(Location loc) {
+            return inBounds(loc.getX(), loc.getY());
+        }
+
+        private boolean inBounds(int x, int y){
             return 0 <= x && x < width && 0 <=y && y < height;
         }
     }

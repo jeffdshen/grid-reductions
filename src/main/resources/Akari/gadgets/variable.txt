@@ -1,7 +1,1 @@
-VARIABLE
-2 3
-
-(0,1)
-x x
-. x
-x x
+VARIABLE2	3_	_	_	__	x	x	_O_0	.	x	__	x	x	__	_	_	_

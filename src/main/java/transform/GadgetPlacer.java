@@ -1,10 +1,14 @@
 package transform;
 
+import com.google.common.base.Function;
+import com.google.common.collect.Lists;
 import types.Direction;
 import types.Gadget;
 import types.Location;
+import types.Side;
 import types.configuration.GridConfiguration;
-import types.configuration.cells.*;
+import types.configuration.cells.Cell;
+import types.configuration.cells.CellType;
 import types.configuration.placement.GadgetGroup;
 import types.configuration.placement.OutputGrid;
 import types.configuration.placement.OutputRect;
@@ -210,8 +214,8 @@ public class GadgetPlacer {
      * @return offset relative to out that in should be at
      */
     private Location getAlignmentOffset(Gadget out, int outIdx, Gadget in, int inIdx, boolean flip) throws Exception {
-        Location input = in.getInput(inIdx);
-        Location output = out.getOutput(outIdx);
+        Location input = getInput(in, inIdx);
+        Location output = getOutput(out, outIdx);
         Direction inDir = getEdge(input, in.getSizeX(), in.getSizeY());
         Direction outDir = getEdge(output, out.getSizeX(), out.getSizeY());
         if(inDir.opposite() != outDir){
@@ -258,8 +262,8 @@ public class GadgetPlacer {
                     if(flipped){
                         turn = turns.get(finalTurnDir.opposite()).get(inDir.opposite());
                     }
-                    Location turnIn = turn.getInput(0);
-                    Location turnOut = turn.getOutput(0);
+                    Location turnIn = getInput(turn, 0);
+                    Location turnOut = getOutput(turn, 0);
 
                     int x = target.getX() - finalTurnDir.getX() - getOutInDist(turn, true, flipped) ;
                     int y = target.getY() - finalTurnDir.getY() -  getOutInDist(turn, false, flipped) ;
@@ -297,8 +301,8 @@ public class GadgetPlacer {
                     if(flipped){
                         turn = turns.get(finalTurnDir.opposite()).get(inDir.opposite());
                     }
-                    Location turnIn = turn.getInput(0);
-                    Location turnOut = turn.getOutput(0);
+                    Location turnIn = getInput(turn, 0);
+                    Location turnOut = getOutput(turn, 0);
                     int x = target.getX() - finalTurnDir.getX() - getOutInDist(turn, true, flipped) ;
                     int y = target.getY() - finalTurnDir.getY() - getOutInDist(turn, false, flipped) ;
                     if(flipped){
@@ -386,9 +390,9 @@ public class GadgetPlacer {
             return -getOutInDist(g, isXDist, false);
         }
         if(isXDist){
-            return g.getOutput(0).getX() - g.getInput(0).getX();
+            return getOutput(g, 0).getX() - getInput(g, 0).getX();
         }
-        return g.getOutput(0).getY() - g.getInput(0).getY();
+        return getOutput(g, 0).getY() - getInput(g, 0).getY();
     }
 
     private GadgetGroup generateTurnWire(Direction inDir, Direction outDir, Location target) throws Exception{
@@ -423,8 +427,8 @@ public class GadgetPlacer {
             outDir = outDir.opposite();
             turn = turns.get(outDir).get(inDir);
         }
-        Location turnIn = turn.getInput(0);
-        Location turnOut = turn.getOutput(0);
+        Location turnIn = getInput(turn, 0);
+        Location turnOut = getOutput(turn, 0);
         int length = 0;
         switch(outDir){
             case NORTH:
@@ -527,7 +531,7 @@ public class GadgetPlacer {
         //determine direction.
         Direction inDir = c.getInputDirection(0);
         GadgetGroup wire = generateStraightWire(inDir.opposite(), cellSize, false);
-        Location wireInput = wire.getBaseGadget().getInput(0);
+        Location wireInput = getInput(wire.getBaseGadget(), 0);
         Gadget baseWire = wire.getBaseGadget();
         switch(inDir){
             case NORTH:
@@ -561,7 +565,7 @@ public class GadgetPlacer {
                 else{
                     turn = generateTurnWire(inDir, outDir, new Location(-halfCellSize, halfCellSize));
                 }
-                wireInput = turn.getBaseGadget().getInput(0);
+                wireInput = getInput(turn.getBaseGadget(), 0);
                 rect.setContents(turn, new Location(halfCellSize - wireInput.getX(), 0));
                 break;
             case SOUTH:
@@ -571,7 +575,7 @@ public class GadgetPlacer {
                 else{
                     turn = generateTurnWire(inDir, outDir, new Location(-halfCellSize, -(cellSize - halfCellSize-1)));
                 }
-                wireInput = turn.getBaseGadget().getInput(0);
+                wireInput = getInput(turn.getBaseGadget(), 0);
                 rect.setContents(turn, new Location(halfCellSize - wireInput.getX(), cellSize - turn.getBaseGadget().getSizeY()));
                 break;
             case EAST:
@@ -581,7 +585,7 @@ public class GadgetPlacer {
                 else{
                     turn = generateTurnWire(inDir, outDir, new Location(-(cellSize - halfCellSize-1), cellSize - halfCellSize-1));
                 }
-                wireInput = turn.getBaseGadget().getInput(0);
+                wireInput = getInput(turn.getBaseGadget(), 0);
                 rect.setContents(turn, new Location(cellSize - turn.getBaseGadget().getSizeX(), halfCellSize - wireInput.getY()));
                 break;
             case WEST:
@@ -591,7 +595,7 @@ public class GadgetPlacer {
                 else{
                     turn = generateTurnWire(inDir, outDir, new Location(halfCellSize, cellSize - halfCellSize-1));
                 }
-                wireInput = turn.getBaseGadget().getInput(0);
+                wireInput = getInput(turn.getBaseGadget(), 0);
                 rect.setContents(turn, new Location(0, halfCellSize - wireInput.getY()));
                 break;
         }
@@ -614,7 +618,7 @@ public class GadgetPlacer {
         Location center = new Location(halfCellSize - centerOffset, halfCellSize-centerOffset);
         GadgetGroup crossoverGroup = new GadgetGroup(crossover);
         for(int i = 0; i < 2; i ++){
-            Location input = crossover.getInput(i);
+            Location input = getInput(crossover, i);
             Direction inputDir = getEdge(input, crossover.getSizeX(),crossover.getSizeY());
             Location start = center.offset(input);
             Location target;
@@ -652,7 +656,7 @@ public class GadgetPlacer {
             crossoverGroup.addGroup(inWire, getAlignmentOffset(inWire.getBaseGadget(),0, crossover, i, true));
         }
         for(int i = 0; i < 2; i ++) {
-            Location output = crossover.getOutput(i);
+            Location output = getOutput(crossover, i);
             Direction outputDir = getEdge(output, crossover.getSizeX(), crossover.getSizeY());
             Location start = center.offset(output);
             Location target;
@@ -713,7 +717,7 @@ public class GadgetPlacer {
         for(int i = sizeY-1; i >= 0; i--){ //change
             if(cells[0][i].isInput(curDir)){ //change access
                 int portIdx = cells[0][i].getPortNumber(curDir);
-                Location input = g.getInput(portIdx);
+                Location input = getInput(g, portIdx);
                 Location start = center.offset(input);
                 Location target = new Location(0, cellSize*i + halfCellSize); // change
                 int length = numTurn*buffer + straightLength;
@@ -726,7 +730,7 @@ public class GadgetPlacer {
             }
             if(cells[0][i].isOutput(curDir)){ //change access
                 int portIdx = cells[0][i].getPortNumber(curDir);
-                Location output = g.getOutput(portIdx);
+                Location output = getOutput(g, portIdx);
                 Location start = center.offset(output);
                 Location target = new Location(0, cellSize*i + halfCellSize); //change
                 int length = numTurn*buffer + straightLength;
@@ -745,7 +749,7 @@ public class GadgetPlacer {
         for(int i = sizeY-1; i >= 0; i--){ //change
             if(cells[sizeX - 1][i].isInput(curDir)){ //change access
                 int portIdx = cells[sizeX - 1][i].getPortNumber(curDir);
-                Location input = g.getInput(portIdx);
+                Location input = getInput(g, portIdx);
                 Location start = center.offset(input);
                 Location target = new Location(cellSize*sizeX-1, cellSize*i + halfCellSize); // change
                 int length = numTurn*buffer + straightLength;
@@ -758,7 +762,7 @@ public class GadgetPlacer {
             }
             if(cells[sizeX - 1][i].isOutput(curDir)){ //change access
                 int portIdx = cells[sizeX - 1][i].getPortNumber(curDir);
-                Location output = g.getOutput(portIdx);
+                Location output = getOutput(g, portIdx);
                 Location start = center.offset(output);
                 Location target = new Location(cellSize*sizeX-1, cellSize*i + halfCellSize); //change
                 int length = numTurn*buffer + straightLength;
@@ -778,7 +782,7 @@ public class GadgetPlacer {
         for(int i = sizeX-1; i >= 0; i--){ //change
             if(cells[i][sizeY - 1].isInput(curDir)){ //change access
                 int portIdx = cells[i][sizeY - 1].getPortNumber(curDir);
-                Location input = g.getInput(portIdx);
+                Location input = getInput(g, portIdx);
                 Location start = center.offset(input);
                 Location target = new Location(cellSize*i + halfCellSize, cellSize*sizeY-1); // change
                 int length = numTurn*buffer + straightLength;
@@ -791,7 +795,7 @@ public class GadgetPlacer {
             }
             if(cells[i][sizeY - 1].isOutput(curDir)){ //change access
                 int portIdx = cells[i][sizeY - 1].getPortNumber(curDir);
-                Location output = g.getOutput(portIdx);
+                Location output = getOutput(g, portIdx);
                 Location start = center.offset(output);
                 Location target = new Location(cellSize*i + halfCellSize, cellSize*sizeY-1); //change
                 int length = numTurn*buffer + straightLength;
@@ -811,7 +815,7 @@ public class GadgetPlacer {
         for(int i = sizeX-1; i >= 0; i--){ //change
             if(cells[i][0].isInput(curDir)){ //change access
                 int portIdx = cells[i][0].getPortNumber(curDir);
-                Location input = g.getInput(portIdx);
+                Location input = getInput(g, portIdx);
                 Location start = center.offset(input);
                 Location target = new Location(cellSize*i + halfCellSize, 0); // change
                 int length = numTurn*buffer + straightLength;
@@ -824,7 +828,7 @@ public class GadgetPlacer {
             }
             if(cells[i][0].isOutput(curDir)){ //change access
                 int portIdx = cells[i][0].getPortNumber(curDir);
-                Location output = g.getOutput(portIdx);
+                Location output = getOutput(g, portIdx);
                 Location start = center.offset(output);
                 Location target = new Location(cellSize*i + halfCellSize, 0); //change
                 int length = numTurn*buffer + straightLength;
@@ -875,8 +879,8 @@ public class GadgetPlacer {
      */
     private Gadget normalizeCrossover(Gadget g){
         Gadget out = g;
-        Location output1 = out.getOutput(0);
-        Location output2 = out.getOutput(1);
+        Location output1 = getOutput(out, 0);
+        Location output2 = getOutput(out, 1);
         Direction output1Dir = getEdge(output1, out.getSizeX(), out.getSizeY());
         Direction output2Dir = getEdge(output2, out.getSizeX(), out.getSizeY());
         if(output1Dir.clockwise().equals(output2Dir)){
@@ -902,8 +906,8 @@ public class GadgetPlacer {
      */
     private Gadget normalizeTurn(Gadget g){
         Gadget out = g;
-        Location input = out.getInput(0);
-        Location output = out.getOutput(0);
+        Location input = getInput(out, 0);
+        Location output = getOutput(out, 0);
         Direction inputDir = getEdge(input, out.getSizeX(), out.getSizeY());
         Direction outputDir = getEdge(output, out.getSizeX(), out.getSizeY());
         switch(inputDir){
@@ -930,7 +934,7 @@ public class GadgetPlacer {
      * @return normalized wire
      */
     public Gadget normalizeWire(Gadget g){
-        Location input = g.getInput(0);
+        Location input = getInput(g, 0);
         Direction inputDir = getEdge(input, g.getSizeX(), g.getSizeY());
         switch(inputDir){
             case NORTH:
@@ -961,15 +965,15 @@ public class GadgetPlacer {
         }
         List<Location> newInputs = new ArrayList<>();
         for(int i = 0; i < g.getInputSize(); i++){
-            Location oldInput = g.getInput(i);
+            Location oldInput = getInput(g, i);
             newInputs.add(new Location(oldInput.getY(), sizeX - oldInput.getX() - 1));
         }
         List<Location> newOutputs = new ArrayList<>();
         for(int i= 0; i < g.getOutputSize(); i++){
-            Location oldOutput = g.getOutput(i);
+            Location oldOutput = getOutput(g, i);
             newOutputs.add(new Location(oldOutput.getY(), sizeX - oldOutput.getX() - 1));
         }
-        return new Gadget(g.getName(), newCells, newInputs, newOutputs);
+        return makeGadget(g.getName(), newCells, newInputs, newOutputs);
     }
 
     /***
@@ -988,15 +992,15 @@ public class GadgetPlacer {
         }
         List<Location> newInputs = new ArrayList<>();
         for(int i = 0; i < g.getInputSize(); i++){
-            Location oldInput = g.getInput(i);
+            Location oldInput = getInput(g, i);
             newInputs.add(new Location(sizeY - oldInput.getY() - 1, oldInput.getX()));
         }
         List<Location> newOutputs = new ArrayList<>();
         for(int i= 0; i < g.getOutputSize(); i++){
-            Location oldOutput = g.getOutput(i);
+            Location oldOutput = getOutput(g, i);
             newOutputs.add(new Location(sizeY - oldOutput.getY() - 1, oldOutput.getX()));
         }
-        return new Gadget(g.getName(), newCells, newInputs, newOutputs);
+        return makeGadget(g.getName(), newCells, newInputs, newOutputs);
     }
 
     /***
@@ -1015,15 +1019,15 @@ public class GadgetPlacer {
         }
         List<Location> newInputs = new ArrayList<>();
         for(int i = 0; i < g.getInputSize(); i++){
-            Location oldInput = g.getInput(i);
+            Location oldInput = getInput(g, i);
             newInputs.add(new Location(sizeX - oldInput.getX() - 1, oldInput.getY()));
         }
         List<Location> newOutputs = new ArrayList<>();
         for(int i= 0; i < g.getOutputSize(); i++){
-            Location oldOutput = g.getOutput(i);
+            Location oldOutput = getOutput(g, i);
             newOutputs.add(new Location(sizeX - oldOutput.getX() - 1, oldOutput.getY()));
         }
-        return new Gadget(g.getName(), newCells, newInputs, newOutputs);
+        return makeGadget(g.getName(), newCells, newInputs, newOutputs);
     }
     /***
      * Reflect a gadget along the X-axis
@@ -1041,15 +1045,61 @@ public class GadgetPlacer {
         }
         List<Location> newInputs = new ArrayList<>();
         for(int i = 0; i < g.getInputSize(); i++){
-            Location oldInput = g.getInput(i);
+            Location oldInput = getInput(g, i);
             newInputs.add(new Location(oldInput.getX(), sizeY - oldInput.getY() - 1));
         }
         List<Location> newOutputs = new ArrayList<>();
         for(int i= 0; i < g.getOutputSize(); i++){
-            Location oldOutput = g.getOutput(i);
+            Location oldOutput = getOutput(g, i);
             newOutputs.add(new Location(oldOutput.getX(), sizeY - oldOutput.getY() - 1));
         }
-        return new Gadget(g.getName(), newCells, newInputs, newOutputs);
+        return makeGadget(g.getName(), newCells, newInputs, newOutputs);
     }
 
+
+    // Used for the hot fix for the new gadget format. Does not handle when the location is on corner properly.
+    private Side getSide(int sizeX, int sizeY, Location loc) {
+        for (Direction dir : Direction.values()) {
+            Location next = loc.add(dir);
+            if (!isValid(next.getX(), next.getY(), sizeX, sizeY)) {
+                return new Side(loc, dir);
+            }
+        }
+
+        return null;
+    }
+
+    // Used for the hot fix
+    private boolean isValid(int x, int y, int sizeX, int sizeY) {
+        return x >= 0 && x < sizeX && y >= 0 && y < sizeY;
+    }
+
+
+    // Hot fix for new gadget format. Does not handle when the input is on corner properly.
+    private Location getInput(Gadget g, int i) {
+        return g.getInput(i).getLocation();
+    }
+
+    // Hot fix for new gadget format. Does not handle when the output is on corner properly.
+    private Location getOutput(Gadget g, int o) {
+        return g.getOutput(o).getLocation();
+    }
+
+    // Hot fix for new gadget format. Does not handle when the input is on corner properly.
+    private Gadget makeGadget(String name, String[][] cells, List<Location> inputs, List<Location> outputs) {
+        final int sizeX = cells.length;
+        final int sizeY = cells[0].length;
+
+        Function<Location, Side> locToSide = new Function<Location, Side>(){
+            @Override
+            public Side apply(Location input) {
+                return getSide(sizeX, sizeY, input);
+            }
+        };
+
+        List<Side> sideInputs = Lists.transform(inputs, locToSide);
+        List<Side> sideOutputs = Lists.transform(outputs, locToSide);
+
+        return new Gadget(name, cells, sideInputs, sideOutputs);
+    }
 }

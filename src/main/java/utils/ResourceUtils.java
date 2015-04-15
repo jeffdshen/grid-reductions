@@ -1,9 +1,6 @@
 package utils;
 
-import java.io.File;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.net.URISyntaxException;
 import java.nio.file.Paths;
 
@@ -28,7 +25,7 @@ public class ResourceUtils {
         }
     }
 
-    public static File getAbsolute(Class clazz, String resourceName) throws ResourceNotFoundException {
+    public static File getAbsoluteFile(Class clazz, String resourceName) throws ResourceNotFoundException {
         try{
             return new File(Paths.get(clazz.getResource("/").toURI()).toFile(), resourceName);
         } catch (URISyntaxException e) {
@@ -36,7 +33,7 @@ public class ResourceUtils {
         }
     }
 
-    public static class ResourceNotFoundException extends Exception {
+    public static class ResourceNotFoundException extends IOException {
         public ResourceNotFoundException() {
             super();
         }

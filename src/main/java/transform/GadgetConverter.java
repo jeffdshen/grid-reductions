@@ -3,10 +3,7 @@ package transform;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import types.Direction;
-import types.Gadget;
-import types.Grid;
-import types.Location;
+import types.*;
 import types.configuration.GridConfiguration;
 import types.configuration.cells.Cell;
 import types.configuration.cells.NodeCell;
@@ -22,7 +19,7 @@ public class GadgetConverter {
             Direction step = d.clockwise();
             int count = 0;
             for (Location loc = getStart(g, d, step); g.isValid(loc); loc = loc.add(step)) {
-                if (g.isInput(loc) || g.isOutput(loc)) {
+                if (isInput(g, loc) || isOutput(g, loc)) {
                     count++;
                 }
             }
@@ -35,7 +32,7 @@ public class GadgetConverter {
             Direction step = d.clockwise();
             Location gadgetLoc = getStart(g, d, step);
             for (Location loc = getStart(grid, d, step); grid.isValid(loc); loc = loc.add(step), gadgetLoc = gadgetLoc.add(step)) {
-                while (g.isValid(gadgetLoc) && !(g.isInput(gadgetLoc) || g.isOutput(gadgetLoc))) {
+                while (g.isValid(gadgetLoc) && !(isInput(g, gadgetLoc) || isOutput(g, gadgetLoc))) {
                     gadgetLoc = gadgetLoc.add(step);
                 }
 
@@ -57,12 +54,12 @@ public class GadgetConverter {
                 }
 
                 // add direction->port
-                if (g.isInput(gadgetLoc)) {
+                if (isInput(g, gadgetLoc)) {
                     inputs = Iterables.concat(inputs, ImmutableList.of(d));
-                    portsBuilder.put(d, g.getInputNumber(gadgetLoc));
+                    portsBuilder.put(d, getInputNumber(g, gadgetLoc));
                 } else {
                     outputs = Iterables.concat(outputs, ImmutableList.of(d));
-                    portsBuilder.put(d, g.getOutputNumber(gadgetLoc));
+                    portsBuilder.put(d, getOutputNumber(g, gadgetLoc));
                 }
 
                 grid.put(new PortCell(c.getName(), id, inputs, outputs, portsBuilder.build()), loc);
@@ -72,6 +69,38 @@ public class GadgetConverter {
 
         return grid;
     }
+
+    // Used for the hot fix for the new gadget format. Does not handle when the location is on corner properly.
+    private Side getSide(Gadget g, Location loc) {
+        for (Direction dir : Direction.values()) {
+            if (!g.isValid(loc.add(dir))) {
+                return new Side(loc, dir);
+            }
+        }
+
+        return null;
+    }
+
+    // Hot fix for new gadget format. Does not handle when the input is on corner properly.
+    private boolean isInput(Gadget g, Location loc) {
+        return g.isInput(getSide(g, loc));
+    }
+
+    // Hot fix for new gadget format. Does not handle when the output is on corner properly.
+    private boolean isOutput(Gadget g, Location loc) {
+        return g.isOutput(getSide(g, loc));
+    }
+
+    // Hot fix for new gadget format. Does not handle when the input is on corner properly.
+    private int getInputNumber(Gadget g, Location loc) {
+        return g.getInputNumber(getSide(g, loc));
+    }
+
+    // Hot fix for new gadget format. Does not handle when the output is on corner properly.
+    private int getOutputNumber(Gadget g, Location loc) {
+        return g.getOutputNumber(getSide(g, loc));
+    }
+
 
     private static Location getStart(Grid g, Direction side, Direction step) {
         Location[] corners = new Location[]{
