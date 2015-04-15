@@ -7,7 +7,7 @@ import types.Location;
 import types.configuration.cells.Cell;
 import types.configuration.cells.EmptyCell;
 
-public class GridConfiguration implements Grid {
+public class GridConfiguration implements Grid<Cell> {
     private Cell[][] cells;
     private int sizeX;
     private int sizeY;
