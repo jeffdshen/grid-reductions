@@ -27,7 +27,7 @@ public class OutputGrid {
 
     public void placeRect(OutputRect rect, int cellOffsetX, int cellOffsetY){
         placeGadgetGroup(rect.getContents(),
-                         rect.getContentsOffset().offset(cellOffsetX*cellDim, cellOffsetY*cellDim));
+                         rect.getContentsOffset().add(cellOffsetX * cellDim, cellOffsetY * cellDim));
     }
 
     private void placeGadgetGroup(GadgetGroup group, Location offset){
@@ -38,7 +38,7 @@ public class OutputGrid {
         placeGadget(group.getBaseGadget(), offsetX, offsetY);
         for(int i = 0; i < group.getSubGroupsSize(); i++){
             placeGadgetGroup(group.getSubGroup(i),
-                             group.getSubGroupOffset(i).offset(offsetX, offsetY));
+                             group.getSubGroupOffset(i).add(offsetX, offsetY));
         }
     }
 

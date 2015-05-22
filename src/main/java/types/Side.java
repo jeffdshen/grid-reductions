@@ -28,6 +28,29 @@ public class Side {
         return new Side(loc.add(d), d.opposite());
     }
 
+    public Side add(int x, int y){
+        return new Side(loc.add(x, y), d);
+    }
+
+    public Side add(Location loc){
+        return add(loc.getX(), loc.getY());
+    }
+
+    public Side add(Direction d){ return add(d.getX(), d.getY()); }
+
+    public Side subtract(int x, int y) {
+        return add(-x, -y);
+    }
+
+    public Side subtract(Location loc) {
+        return subtract(loc.getX(), loc.getY());
+    }
+
+    public Side subtract(Direction dir) {
+        return subtract(dir.getX(), dir.getY());
+    }
+
+
     @Override
     public int hashCode() {
         int hash = 7;

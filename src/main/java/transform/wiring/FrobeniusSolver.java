@@ -1,4 +1,4 @@
-package transform;
+package transform.wiring;
 
 import com.google.common.base.Preconditions;
 
@@ -31,15 +31,15 @@ public class FrobeniusSolver {
 
         if(!areRelativelyPrime(values)){
             String s = "[";
-            for(int i = 0; i <values.length; i++){
-                s = s + values[i] + ",";
+            for (int value : values) {
+                s = s + value + ",";
             }
             s = s + "]";
             throw new Exception("Error: provided wire lengths are not relatively prime : " + s);
         }
 
         this.values = values;
-        coefficients = new HashMap<Integer, int[]>();
+        coefficients = new HashMap<>();
         findFrobeniusNumber();
     }
 
@@ -68,7 +68,7 @@ public class FrobeniusSolver {
     }
 
     /**
-     * Returns an positive integer, above which all numbers have a solution for the Frboneius Equation
+     * Returns an positive integer, above which all numbers have a solution for the Frobenius Equation
      * This number has no solution
      */
     public int getSolvableCutoff(){

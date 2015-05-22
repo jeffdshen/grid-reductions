@@ -1,4 +1,4 @@
-package transform;
+package transform.lp;
 
 import com.joptimizer.optimizers.LPOptimizationRequest;
 import com.joptimizer.optimizers.LPPrimalDualMethod;

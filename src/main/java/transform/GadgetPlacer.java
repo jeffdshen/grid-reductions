@@ -2,6 +2,7 @@ package transform;
 
 import com.google.common.base.Function;
 import com.google.common.collect.Lists;
+import transform.wiring.FrobeniusSolver;
 import types.Direction;
 import types.Gadget;
 import types.Location;
@@ -620,7 +621,7 @@ public class GadgetPlacer {
         for(int i = 0; i < 2; i ++){
             Location input = getInput(crossover, i);
             Direction inputDir = getEdge(input, crossover.getSizeX(),crossover.getSizeY());
-            Location start = center.offset(input);
+            Location start = center.add(input);
             Location target;
             int offsetLength;
             Location offset;
@@ -650,7 +651,7 @@ public class GadgetPlacer {
                     throw new Exception("Not a direction");
             }
             GadgetGroup temp = generateSameDirWire(inputDir,
-                    (new Location(target.getX()-start.getX()-inputDir.getX(), target.getY()-start.getY()-inputDir.getY())).offset(offset)
+                    (new Location(target.getX()-start.getX()-inputDir.getX(), target.getY()-start.getY()-inputDir.getY())).add(offset)
                     ,true);
             GadgetGroup inWire = appendToStraightWire(inputDir.opposite(), offsetLength, temp, 0, true);
             crossoverGroup.addGroup(inWire, getAlignmentOffset(inWire.getBaseGadget(),0, crossover, i, true));
@@ -658,7 +659,7 @@ public class GadgetPlacer {
         for(int i = 0; i < 2; i ++) {
             Location output = getOutput(crossover, i);
             Direction outputDir = getEdge(output, crossover.getSizeX(), crossover.getSizeY());
-            Location start = center.offset(output);
+            Location start = center.add(output);
             Location target;
             Location offset;
             int offsetLength;
@@ -688,7 +689,7 @@ public class GadgetPlacer {
                     throw new Exception("Not a direction");
             }
             GadgetGroup temp = generateSameDirWire(outputDir,
-                    (new Location(target.getX() - start.getX()-outputDir.getX(), target.getY() - start.getY()-outputDir.getY())).offset(offset)
+                    (new Location(target.getX() - start.getX()-outputDir.getX(), target.getY() - start.getY()-outputDir.getY())).add(offset)
                     ,false);
             GadgetGroup outWire = appendToStraightWire(outputDir, offsetLength, temp, 0, false);
             crossoverGroup.addGroup(outWire, getAlignmentOffset(crossover, i, outWire.getBaseGadget(), 0, false));
@@ -718,7 +719,7 @@ public class GadgetPlacer {
             if(cells[0][i].isInput(curDir)){ //change access
                 int portIdx = cells[0][i].getPortNumber(curDir);
                 Location input = getInput(g, portIdx);
-                Location start = center.offset(input);
+                Location start = center.add(input);
                 Location target = new Location(0, cellSize*i + halfCellSize); // change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
@@ -731,7 +732,7 @@ public class GadgetPlacer {
             if(cells[0][i].isOutput(curDir)){ //change access
                 int portIdx = cells[0][i].getPortNumber(curDir);
                 Location output = getOutput(g, portIdx);
-                Location start = center.offset(output);
+                Location start = center.add(output);
                 Location target = new Location(0, cellSize*i + halfCellSize); //change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
@@ -750,7 +751,7 @@ public class GadgetPlacer {
             if(cells[sizeX - 1][i].isInput(curDir)){ //change access
                 int portIdx = cells[sizeX - 1][i].getPortNumber(curDir);
                 Location input = getInput(g, portIdx);
-                Location start = center.offset(input);
+                Location start = center.add(input);
                 Location target = new Location(cellSize*sizeX-1, cellSize*i + halfCellSize); // change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
@@ -763,7 +764,7 @@ public class GadgetPlacer {
             if(cells[sizeX - 1][i].isOutput(curDir)){ //change access
                 int portIdx = cells[sizeX - 1][i].getPortNumber(curDir);
                 Location output = getOutput(g, portIdx);
-                Location start = center.offset(output);
+                Location start = center.add(output);
                 Location target = new Location(cellSize*sizeX-1, cellSize*i + halfCellSize); //change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
@@ -783,7 +784,7 @@ public class GadgetPlacer {
             if(cells[i][sizeY - 1].isInput(curDir)){ //change access
                 int portIdx = cells[i][sizeY - 1].getPortNumber(curDir);
                 Location input = getInput(g, portIdx);
-                Location start = center.offset(input);
+                Location start = center.add(input);
                 Location target = new Location(cellSize*i + halfCellSize, cellSize*sizeY-1); // change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
@@ -796,7 +797,7 @@ public class GadgetPlacer {
             if(cells[i][sizeY - 1].isOutput(curDir)){ //change access
                 int portIdx = cells[i][sizeY - 1].getPortNumber(curDir);
                 Location output = getOutput(g, portIdx);
-                Location start = center.offset(output);
+                Location start = center.add(output);
                 Location target = new Location(cellSize*i + halfCellSize, cellSize*sizeY-1); //change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
@@ -816,7 +817,7 @@ public class GadgetPlacer {
             if(cells[i][0].isInput(curDir)){ //change access
                 int portIdx = cells[i][0].getPortNumber(curDir);
                 Location input = getInput(g, portIdx);
-                Location start = center.offset(input);
+                Location start = center.add(input);
                 Location target = new Location(cellSize*i + halfCellSize, 0); // change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc
@@ -829,7 +830,7 @@ public class GadgetPlacer {
             if(cells[i][0].isOutput(curDir)){ //change access
                 int portIdx = cells[i][0].getPortNumber(curDir);
                 Location output = getOutput(g, portIdx);
-                Location start = center.offset(output);
+                Location start = center.add(output);
                 Location target = new Location(cellSize*i + halfCellSize, 0); //change
                 int length = numTurn*buffer + straightLength;
                 GadgetGroup temp = generateSameDirWire(curDir, //change loc

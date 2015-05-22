@@ -8,7 +8,7 @@ import java.util.List;
 /**
  * A generic gadget composed of grid cells.
  */
-public class Gadget implements Grid {
+public class Gadget implements Grid<String> {
     private final String[][] cells;
     private final int sizeX;
     private final int sizeY;

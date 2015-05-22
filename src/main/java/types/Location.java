@@ -9,13 +9,27 @@ public class Location {
         this.y = y;
     }
 
-    public Location offset(int offsetX, int offsetY){
-        return new Location(x + offsetX, y + offsetY);
+    public Location add(int x, int y){
+        return new Location(this.x + x, y + this.y);
     }
-    public Location offset(Location offset){
-        return offset(offset.x, offset.y);
+    public Location add(Location loc){
+        return add(loc.x, loc.y);
     }
-    public Location offset(Direction d){ return offset(d.getX(), d.getY()); }
+    public Location add(Direction d) {
+        return add(d.getX(), d.getY());
+    }
+
+    public Location subtract(int x, int y) {
+        return add(-x, -y);
+    }
+
+    public Location subtract(Location loc) {
+        return subtract(loc.getX(), loc.getY());
+    }
+
+    public Location subtract(Direction dir) {
+        return subtract(dir.getX(), dir.getY());
+    }
 
     @Override
     public boolean equals(Object o) {
@@ -26,9 +40,6 @@ public class Location {
         return super.equals(o);
     }
 
-    public Location add(Direction d) {
-        return new Location(x + d.getX(), y + d.getY());
-    }
 
     public int getX() {
         return x;

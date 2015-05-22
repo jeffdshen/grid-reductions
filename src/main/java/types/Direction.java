@@ -70,6 +70,19 @@ public enum Direction {
         return OPPOSITES.get(this);
     }
 
-    public Direction clockwise() { return CLOCKWISE.get(this); }
-    public Direction anticlockwise() { return ANTICLOCKWISE.get(this); }
+    public Direction clockwise() {
+        return CLOCKWISE.get(this);
+    }
+
+    public Direction anticlockwise() {
+        return ANTICLOCKWISE.get(this);
+    }
+
+    public boolean perpendicular(Direction d) {
+        return x * d.x + y * d.y == 0;
+    }
+
+    public boolean parallel(Direction d) {
+        return !perpendicular(d);
+    }
 }
