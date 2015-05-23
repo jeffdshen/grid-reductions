@@ -19,7 +19,8 @@ public class GridConfiguration extends MutableGrid<Cell> {
         int sizeX = this.getSizeX();
         int sizeY = this.getSizeY();
         StringBuilder builder = new StringBuilder();
-        builder.append(String.format("GridConfiguration(sizeX=%s, sizeY=%s, cells=\n", sizeX, sizeY));
+        builder.append(String.format("GridConfiguration(sizeX=%s, sizeY=%s, cells=", sizeX, sizeY));
+        builder.append(System.lineSeparator());
         char[][] grid = new char[sizeX * 3][sizeY * 3];
 
         for (int i = 0; i < sizeX; i++) {
@@ -50,7 +51,7 @@ public class GridConfiguration extends MutableGrid<Cell> {
             for (int j = 0; j < sizeX * 3; j++) {
                 builder.append(grid[j][i]);
             }
-            builder.append("\n");
+            builder.append(System.lineSeparator());
         }
         builder.append(")");
         return builder.toString();

@@ -1,6 +1,8 @@
 package types;
 
+import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
+import transform.GridUtils;
 
 public class MutableGrid<Cell> implements Grid<Cell> {
     private Cell background;
@@ -65,11 +67,11 @@ public class MutableGrid<Cell> implements Grid<Cell> {
         return cells[x][y];
     }
 
-    public void put(MutableGrid<Cell> grid, Location loc) {
+    public void put(Grid<Cell> grid, Location loc) {
         put(this.cells, grid, loc.getX(), loc.getY());
     }
 
-    public void put(MutableGrid<Cell> grid, int x, int y) {
+    public void put(Grid<Cell> grid, int x, int y) {
         put(this.cells, grid, x, y);
     }
 
@@ -92,9 +94,21 @@ public class MutableGrid<Cell> implements Grid<Cell> {
         return cells;
     }
 
-    private void put(Cell[][] cells, MutableGrid<Cell> grid, int x, int y) {
-        for (int i = 0; i < grid.sizeX; i++) {
-            System.arraycopy(grid.cells[i], 0, cells[x + i], y, grid.sizeY);
+    private void put(Cell[][] cells, Grid<Cell> grid, int x, int y) {
+        for (int i = 0; i < grid.getSizeX(); i++) {
+            for (int j = 0; j < grid.getSizeY(); j++) {
+                cells[x + i][y + j] = grid.getCell(i, j);
+            }
         }
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < sizeY; i++) {
+            builder.append(Joiner.on(" ").join(GridUtils.sliceY(this, i)));
+            builder.append(System.lineSeparator());
+        }
+        return builder.toString();
     }
 }

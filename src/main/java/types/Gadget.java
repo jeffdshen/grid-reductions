@@ -105,6 +105,7 @@ public class Gadget implements Grid<String> {
     public boolean isOutput(Location loc, Direction dir) {
         return isOutput(new Side(loc, dir));
     }
+
     public boolean isOutput(int x, int y, Direction dir) {
         return isOutput(new Location(x, y), dir);
     }
@@ -125,15 +126,16 @@ public class Gadget implements Grid<String> {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append(String.format(
-            "Gadget(sizeX=%s, sizeY=%s, inputs=%s, outputs=%s, cells=\n", sizeX, sizeY, inputs, outputs
+            "Gadget(sizeX=%s, sizeY=%s, inputs=%s, outputs=%s, cells=", sizeX, sizeY, inputs, outputs
         ));
+        builder.append(System.lineSeparator());
 
         // print transposed
         for (int i = 0; i < sizeY; i++) {
             for (int j = 0; j < sizeX; j++) {
                 builder.append(cells[j][i]);
             }
-            builder.append("\n");
+            builder.append(System.lineSeparator());
         }
         builder.append(")");
         return builder.toString();
