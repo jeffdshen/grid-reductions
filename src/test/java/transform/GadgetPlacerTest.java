@@ -8,47 +8,36 @@ import types.Gadget;
 import types.Location;
 import types.configuration.GridConfiguration;
 import types.configuration.cells.*;
+import utils.ResourceUtils;
 
-import java.io.File;
 import java.util.*;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 public class GadgetPlacerTest {
 
     @Test
     public void testPlace() throws Exception {
-        assertNotNull(getClass().getResource("bigand.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("crossover.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("empty.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("not.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("turn.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("wire-3x6.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("wire-6x4.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("wire-9x4.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("wire-3x3.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("wire-3x2.txt"), "Test file missing");
-
         List<Gadget> fatWires = new ArrayList<>();
         List<Gadget> shortWires = new ArrayList<>();
         List<Gadget> baseGadgets = new ArrayList<>();
 
         GadgetParser parser = new GadgetParser();
-        Gadget and = parser.parseGadget(new File(getClass().getResource("bigand.txt").getFile()));
-        Gadget crossover = parser.parseGadget(new File(getClass().getResource("crossover.txt").getFile()));
-        Gadget empty = parser.parseGadget(new File(getClass().getResource("empty.txt").getFile()));
-        Gadget not = parser.parseGadget(new File(getClass().getResource("not.txt").getFile()));
-        Gadget turn = parser.parseGadget(new File(getClass().getResource("turn.txt").getFile()));
+        Gadget and = parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "bigand.txt"));
+        Gadget crossover = parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "crossover.txt"));
+        Gadget empty = parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "empty.txt"));
+        Gadget not = parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "not.txt"));
+        Gadget turn = parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "turn.txt"));
 
         baseGadgets.add(and);
         baseGadgets.add(not);
 
-        fatWires.add(parser.parseGadget(new File(getClass().getResource("wire-3x6.txt").getFile())));
-        fatWires.add(parser.parseGadget(new File(getClass().getResource("wire-6x4.txt").getFile())));
-        fatWires.add(parser.parseGadget(new File(getClass().getResource("wire-9x4.txt").getFile())));
+        fatWires.add(parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "wire-3x6.txt")));
+        fatWires.add(parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "wire-6x4.txt")));
+        fatWires.add(parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "wire-9x4.txt")));
 
-        shortWires.add(parser.parseGadget(new File(getClass().getResource("wire-3x2.txt").getFile())));
-        shortWires.add(parser.parseGadget(new File(getClass().getResource("wire-3x3.txt").getFile())));
+        shortWires.add(parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "wire-3x2.txt")));
+        shortWires.add(parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "wire-3x3.txt")));
 
         GadgetPlacer fatPlacer = new GadgetPlacer(fatWires, turn, crossover, empty, baseGadgets);
         GadgetPlacer shortPlacer = new GadgetPlacer(shortWires, turn, crossover, empty, baseGadgets);

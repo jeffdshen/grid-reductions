@@ -7,18 +7,16 @@ import org.testng.annotations.Test;
 import types.configuration.Configuration;
 import types.configuration.nodes.Node;
 import types.configuration.nodes.NodeType;
+import utils.ResourceUtils;
 
-import java.io.File;
-
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
 
 public class ConfigurationParserTest {
 
     @Test
     public void testParseConfiguration() throws Exception {
-        assertNotNull(getClass().getResource("nand.txt"), "Test file missing");
         ConfigurationParser parser = new ConfigurationParser();
-        Configuration cfg = parser.parseConfiguration(new File(getClass().getResource("nand.txt").getFile()));
+        Configuration cfg = parser.parseConfiguration(ResourceUtils.getRelativeFile(getClass(), "nand.txt"));
         assertEquals(cfg.getName(), "NAND");
 
         assertEquals(ImmutableList.of(0, 1, 2, 4), ImmutableList.copyOf(Iterables.transform(cfg.getNodes(),

@@ -9,10 +9,7 @@ import parser.SATParser;
 import types.Gadget;
 import types.configuration.AtomicConfiguration;
 import types.configuration.Configuration;
-
-import java.io.File;
-
-import static org.testng.Assert.assertNotNull;
+import utils.ResourceUtils;
 
 public class EndToEndTest {
     @Test
@@ -22,23 +19,19 @@ public class EndToEndTest {
         AtomicConfiguration config = new ConfigurationResolver()
             .resolve(c, ImmutableList.<Configuration>of(), ImmutableSet.of("AND", "OR", "VARIABLE", "SPLIT", "END"));
 
-        assertNotNull(getClass().getResource("circuit/and.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("circuit/or.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("circuit/variable.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("circuit/split.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("circuit/end.txt"), "Test file missing");
+        String dir = "types/gadget/circuit/";
 
         GadgetParser parser = new GadgetParser();
-        Gadget and = parser.parseGadget(new File(getClass().getResource("circuit/and.txt").getFile()));
-        Gadget or = parser.parseGadget(new File(getClass().getResource("circuit/or.txt").getFile()));
-        Gadget var = parser.parseGadget(new File(getClass().getResource("circuit/variable.txt").getFile()));
-        Gadget split = parser.parseGadget(new File(getClass().getResource("circuit/split.txt").getFile()));
-        Gadget end = parser.parseGadget(new File(getClass().getResource("circuit/end.txt").getFile()));
-        Gadget wire = parser.parseGadget(new File(getClass().getResource("circuit/wire.txt").getFile()));
-        Gadget wire2 = parser.parseGadget(new File(getClass().getResource("circuit/wire2.txt").getFile()));
-        Gadget turn = parser.parseGadget(new File(getClass().getResource("circuit/turn.txt").getFile()));
-        Gadget crossover = parser.parseGadget(new File(getClass().getResource("circuit/crossover.txt").getFile()));
-        Gadget empty = parser.parseGadget(new File(getClass().getResource("circuit/empty.txt").getFile()));
+        Gadget and = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "and.txt"));
+        Gadget or = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "or.txt"));
+        Gadget var = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "variable.txt"));
+        Gadget split = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "split.txt"));
+        Gadget end = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "end.txt"));
+        Gadget wire = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire.txt"));
+        Gadget wire2 = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire2.txt"));
+        Gadget turn = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "turn.txt"));
+        Gadget crossover = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "crossover.txt"));
+        Gadget empty = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "empty.txt"));
 
 
         GridPlacer placer = new GridPlacer(

@@ -74,7 +74,11 @@ public class MutableGrid<Cell> implements Grid<Cell> {
     }
 
     public void put(Cell cell, Location loc) {
-        this.cells[loc.getX()][loc.getY()] = cell;
+        put(cell, loc.getX(), loc.getY());
+    }
+
+    public void put(Cell cell, int x, int y) {
+        this.cells[x][y] = cell;
     }
 
     private Cell[][] getCellCopies(Cell original, int x, int y) {

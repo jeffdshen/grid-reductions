@@ -9,10 +9,7 @@ import parser.SATParser;
 import types.Gadget;
 import types.configuration.AtomicConfiguration;
 import types.configuration.Configuration;
-
-import java.io.File;
-
-import static org.testng.Assert.*;
+import utils.ResourceUtils;
 
 public class GridPlacerTest {
     @Test
@@ -22,18 +19,13 @@ public class GridPlacerTest {
         AtomicConfiguration config = new ConfigurationResolver()
             .resolve(c, ImmutableList.<Configuration>of(), ImmutableSet.of("AND", "OR", "VARIABLE", "SPLIT", "END"));
 
-        assertNotNull(getClass().getResource("circuit/and.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("circuit/or.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("circuit/variable.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("circuit/split.txt"), "Test file missing");
-        assertNotNull(getClass().getResource("circuit/end.txt"), "Test file missing");
-
+        String dir = "types/gadget/circuit/";
         GadgetParser parser = new GadgetParser();
-        Gadget and = parser.parseGadget(new File(getClass().getResource("circuit/and.txt").getFile()));
-        Gadget or = parser.parseGadget(new File(getClass().getResource("circuit/or.txt").getFile()));
-        Gadget var = parser.parseGadget(new File(getClass().getResource("circuit/variable.txt").getFile()));
-        Gadget split = parser.parseGadget(new File(getClass().getResource("circuit/split.txt").getFile()));
-        Gadget end = parser.parseGadget(new File(getClass().getResource("circuit/end.txt").getFile()));
+        Gadget and = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "and.txt"));
+        Gadget or = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "or.txt"));
+        Gadget var = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "variable.txt"));
+        Gadget split = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "split.txt"));
+        Gadget end = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "end.txt"));
 
         GridPlacer placer = new GridPlacer(
             config, ImmutableMap.of("AND", and,"OR", or, "VARIABLE", var, "SPLIT", split, "END", end)

@@ -8,19 +8,16 @@ import types.Gadget;
 import types.configuration.GridConfiguration;
 import types.configuration.cells.Cell;
 import types.configuration.cells.CellType;
+import utils.ResourceUtils;
 
-import java.io.File;
-import java.net.URL;
-
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 public class GadgetConverterTest {
     @Test
     public void testToGridConfiguration() throws Exception {
-        URL resource = getClass().getResource("circuit/and.txt");
-        assertNotNull(resource, "Test file missing");
         GadgetParser parser = new GadgetParser();
-        Gadget gadget = parser.parseGadget(new File(resource.getFile()));
+        Gadget gadget = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), "types/gadget/circuit/and.txt"));
         GadgetConverter converter = new GadgetConverter();
         GridConfiguration grid = converter.toGridConfiguration(gadget, ImmutableList.of(1, 2, 3));
 

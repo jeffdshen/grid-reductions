@@ -1,13 +1,12 @@
 package parser;
 
 import com.google.common.base.CharMatcher;
+import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Ordering;
 import org.apache.log4j.Logger;
-import types.Direction;
-import types.Gadget;
-import types.Location;
-import types.Side;
+import transform.GridUtils;
+import types.*;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -38,12 +37,48 @@ public class GadgetParser {
      * an I_ followed by the input number, or an O_ followed by the output number
      */
     public Gadget parseGadget(File file) {
-        try {
-            return parseGadget(new FileReader(file), file.getAbsolutePath());
-        } catch (FileNotFoundException e) {
+        try (FileReader reader = new FileReader(file)) {
+            return parseGadget(reader, file.getAbsolutePath());
+        } catch (IOException e) {
             logger.log(ERROR, e.getMessage(), e);
         }
         return null;
+    }
+
+    public void writeGadget(Gadget g, File file) {
+        try (PrintWriter out = new PrintWriter(new FileWriter(file))) {
+            out.println(g.getName());
+
+            int x = g.getSizeX();
+            int y = g.getSizeY();
+            out.println(y + " " + x);
+
+            final MutableGrid<String> output = new MutableGrid<>("_", x + 2, y + 2);
+            for (int i = 0; i < x; i++) {
+                for (int j = 0; j < y; j++) {
+                    output.put(g.getCell(i ,j), i + 1, j + 1);
+                }
+            }
+
+            for (int i = 0; i < g.getInputSize(); i++) {
+                Side side = g.getInput(i);
+                Location loc = side.opposite().getLocation();
+                output.put("I_" + i, loc.add(1, 1));
+            }
+
+            for (int i = 0; i < g.getOutputSize(); i++) {
+                Side side = g.getOutput(i);
+                Location loc = side.opposite().getLocation();
+                output.put("O_" + i, loc.add(1, 1));
+            }
+
+            Joiner joiner = Joiner.on(" ");
+            for (int i = 0; i < output.getSizeX(); i++) {
+                out.println(joiner.join(GridUtils.sliceY(output, i)));
+            }
+        } catch (IOException e) {
+            logger.log(ERROR, e.getMessage(), e);
+        }
     }
 
     public Gadget parseGadget(Reader reader, String gadgetId) {
