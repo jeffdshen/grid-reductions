@@ -1,5 +1,6 @@
 package types.configuration;
 
+import com.google.common.collect.ImmutableMap;
 import types.*;
 
 import java.util.HashMap;
@@ -25,6 +26,65 @@ public class GadgetConfiguration {
         offsets = new HashMap<>();
         gadgets = new HashMap<>();
         maxId = 0;
+    }
+
+    /**
+     * Places and connects a configuration via the given gadget's output port
+     */
+    public Map<Integer, Integer> connectOutputPort(
+        int fromGadgetID, int inputPort, int toGadgetID, int outputPort, GadgetConfiguration config
+    ) {
+        Location offset = calcOutputOffset(fromGadgetID, inputPort, config.gadgets.get(toGadgetID), outputPort);
+        return connect(offset.subtract(config.offsets.get(toGadgetID)), config);
+    }
+
+    /**
+     * Places and connects a configuration via the given gadget's input port
+     */
+    public Map<Integer, Integer> connectInputPort(
+        int fromGadgetID, int outputPort, int toGadgetID, int inputPort, GadgetConfiguration config
+    ) {
+        Location offset = calcInputOffset(fromGadgetID, outputPort, config.gadgets.get(toGadgetID), inputPort);
+        return connect(offset.subtract(config.offsets.get(toGadgetID)), config);
+    }
+
+    /**
+     * Connects the configuration with the given offset to this one
+     * @return an mapping from ids in the parameter configuration to the new gadgets
+     */
+    public Map<Integer, Integer> connect(Location offset, GadgetConfiguration configuration) {
+        ImmutableMap.Builder<Integer, Integer> builder = ImmutableMap.builder();
+        for (int i : configuration.gadgets.keySet()) {
+            Location loc = configuration.offsets.get(i);
+            Gadget gadget = configuration.gadgets.get(i);
+            builder.put(i, connect(loc.add(offset), gadget));
+        }
+        return builder.build();
+    }
+
+    public boolean canConnectInputPort(
+        int fromGadgetID, int outputPort, int toGadgetID, int inputPort, GadgetConfiguration config
+    ) {
+        Location offset = calcInputOffset(fromGadgetID, outputPort, config.gadgets.get(toGadgetID), inputPort);
+        return canConnect(offset.subtract(config.offsets.get(toGadgetID)), config);
+    }
+
+    public boolean canConnectOutputPort(
+        int fromGadgetID, int inputPort, int toGadgetID, int outputPort, GadgetConfiguration config
+    ) {
+        Location offset = calcOutputOffset(fromGadgetID, inputPort, config.gadgets.get(toGadgetID), outputPort);
+        return canConnect(offset.subtract(config.offsets.get(toGadgetID)), config);
+    }
+
+    public boolean canConnect(Location offset, GadgetConfiguration configuration) {
+        for (int i : configuration.gadgets.keySet()) {
+            Location loc = configuration.offsets.get(i);
+            Gadget gadget = configuration.gadgets.get(i);
+            if (!canConnect(loc.add(offset), gadget)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**

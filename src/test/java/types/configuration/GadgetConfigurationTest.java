@@ -3,11 +3,10 @@ package types.configuration;
 import org.testng.annotations.Test;
 import parser.GadgetParser;
 import transform.GridUtils;
-import types.Direction;
-import types.Gadget;
-import types.Grid;
-import types.Side;
+import types.*;
 import utils.ResourceUtils;
+
+import java.util.Map;
 
 import static org.testng.Assert.*;
 
@@ -20,9 +19,15 @@ public class GadgetConfigurationTest {
         Gadget wire = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire.txt"));
         Gadget wire2 = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire2.txt"));
         Gadget empty = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "empty.txt"));
+        Gadget variable = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "variable.txt"));
+
         Gadget longAnd = parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "and.txt"));
+        Gadget twoAnds = parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "2ands.txt"));
+
 
         String emptyCell = empty.getCell(0, 0);
+
+        // make a long AND configuration
         GadgetConfiguration g = new GadgetConfiguration();
 
         Side start = new Side(0, 1, Direction.WEST).opposite();
@@ -56,5 +61,20 @@ public class GadgetConfigurationTest {
 
         Grid<String> grid = g.toGrid(emptyCell);
         assertTrue(GridUtils.equals(grid, longAnd));
+
+        // make a variable configuration
+        GadgetConfiguration v = new GadgetConfiguration();
+        int v0 = v.connect(new Location(0, 0), variable);
+
+        //  connect configurations together
+        GadgetConfiguration config = new GadgetConfiguration();
+        assertTrue(config.canConnect(new Location(0, 0), g));
+        Map<Integer, Integer> ids = config.connect(new Location(0, 0), g);
+        assertTrue(config.canConnectInputPort(ids.get(g6), 0, g0, 0, g));
+        Map<Integer, Integer> ids2 = config.connectInputPort(ids.get(g6), 0, g0, 0, g);
+        assertTrue(config.canConnectOutputPort(ids2.get(g4), 0, v0, 0, v));
+        config.connectOutputPort(ids2.get(g4), 0, v0, 0, v);
+
+        assertTrue(GridUtils.equals(config.toGrid(emptyCell), twoAnds));
     }
 }
