@@ -17,4 +17,11 @@ public class FrobeniusSolverTest {
         test = frobSolver.getCoefficients(134652);
         assertEquals(test[0]*30 + test[1]*105 + test[2]*70 + test[3]*42, 134652);
     }
+
+    @Test
+    public void testSingleCoefficient() throws Exception {
+        FrobeniusSolver solver = new FrobeniusSolver(new int[]{1});
+        assertEquals(solver.getSolvableCutoff(), -1);
+        assertEquals(solver.getCoefficients(3), new int[]{3});
+    }
 }

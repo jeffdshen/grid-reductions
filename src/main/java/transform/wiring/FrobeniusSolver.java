@@ -1,8 +1,10 @@
 package transform.wiring;
 
 import com.google.common.base.Preconditions;
+import com.google.common.math.IntMath;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 
 /**
@@ -19,56 +21,36 @@ public class FrobeniusSolver {
     private int frobeniusNumber;
     private HashMap<Integer, int[]> coefficients;
 
-    public FrobeniusSolver(int[] values) throws Exception {
+    public FrobeniusSolver(int[] values) {
         Preconditions.checkNotNull(values);
         Preconditions.checkArgument(values.length > 0);
         for(int value: values){
             Preconditions.checkArgument(value > 0);
         }
-        if(values.length == 1 && values[0] != 1){
-            throw new Exception("Error: only 1 wire length provided and not of length 1");
-        }
+        Preconditions.checkArgument(values.length != 1 || values[0] == 1,
+            "Error: only 1 wire length provided and not of length 1");
 
-        if(!areRelativelyPrime(values)){
-            String s = "[";
-            for (int value : values) {
-                s = s + value + ",";
-            }
-            s = s + "]";
-            throw new Exception("Error: provided wire lengths are not relatively prime : " + s);
-        }
+        Preconditions.checkArgument(areRelativelyPrime(values),
+            "Error: provided wire lengths are not relatively prime : " + Arrays.asList(values));
 
         this.values = values;
         coefficients = new HashMap<>();
         findFrobeniusNumber();
     }
 
-    public boolean areRelativelyPrime(int[] numbers){
-        if(numbers.length < 2){
-            return true;
-        }
+    private static boolean areRelativelyPrime(int[] numbers){
         int currentGCD = numbers[0];
-        for(int i = 1; i < numbers.length; i++){
-            currentGCD = gcd(currentGCD, numbers[i]);
-            if(currentGCD == 1){
+        for (int number : numbers) {
+            currentGCD = IntMath.gcd(currentGCD, number);
+            if (currentGCD == 1) {
                 return true;
             }
         }
         return false;
     }
 
-    //assumes inputs > 0
-    public int gcd(int a, int b){
-        while(a != 0){
-            int tmp = b % a;
-            b = a;
-            a = tmp;
-        }
-        return b;
-    }
-
     /**
-     * Returns an positive integer, above which all numbers have a solution for the Frobenius Equation
+     * Returns an integer >= -1, above which all (nonnegative) numbers have a solution for the Frobenius Equation
      * This number has no solution
      */
     public int getSolvableCutoff(){
@@ -95,7 +77,7 @@ public class FrobeniusSolver {
     }
 
     //finds the frobenius number. Also starts the DP
-    public void findFrobeniusNumber() throws Exception {
+    private void findFrobeniusNumber() {
         int max = 0;
         int min = values[0];
         for(int value: values){
@@ -124,17 +106,17 @@ public class FrobeniusSolver {
         }
         int found = 0;
         for(int i = 0; i < max*min; i++){
-            if(coefficients.containsKey(i)){
-                found ++;
-                if(found ==  min){
+            if (coefficients.containsKey(i)) {
+                found++;
+                if(found == min){
                     frobeniusNumber = i - min;
                     return;
                 }
-            }
-            else{
+            } else {
                 found = 0;
             }
         }
-        throw new Exception("Derp. failed to find frobenius number");
+
+        throw new IllegalStateException("Derp. failed to find frobenius number");
     }
 }
