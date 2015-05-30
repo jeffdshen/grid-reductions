@@ -49,6 +49,10 @@ public class FrobeniusSolver {
         return false;
     }
 
+    public int getWireLength(int index) {
+        return values[index];
+    }
+
     /**
      * Returns an integer >= -1, above which all (nonnegative) numbers have a solution for the Frobenius Equation
      * This number has no solution
