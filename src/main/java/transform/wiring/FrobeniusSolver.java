@@ -1,7 +1,7 @@
 package transform.wiring;
 
 import com.google.common.base.Preconditions;
-import com.google.common.math.IntMath;
+import utils.MathUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,23 +30,12 @@ public class FrobeniusSolver {
         Preconditions.checkArgument(values.length != 1 || values[0] == 1,
             "Error: only 1 wire length provided and not of length 1");
 
-        Preconditions.checkArgument(areRelativelyPrime(values),
+        Preconditions.checkArgument(MathUtils.relativelyPrime(values),
             "Error: provided wire lengths are not relatively prime : " + Arrays.asList(values));
 
         this.values = values;
         coefficients = new HashMap<>();
         findFrobeniusNumber();
-    }
-
-    private static boolean areRelativelyPrime(int[] numbers){
-        int currentGCD = numbers[0];
-        for (int number : numbers) {
-            currentGCD = IntMath.gcd(currentGCD, number);
-            if (currentGCD == 1) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public int getWireLength(int index) {
