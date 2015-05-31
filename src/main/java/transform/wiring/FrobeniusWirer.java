@@ -14,6 +14,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * NOTE here, width means thickness
+ */
 public class FrobeniusWirer implements Wirer {
     private Map<Direction, FrobeniusWirerHelper> wirers;
 
@@ -33,8 +36,8 @@ public class FrobeniusWirer implements Wirer {
     }
 
     @Override
-    public GadgetConfiguration wire(Side input, int length, int width) {
-        return wirers.get(input.getDirection()).wire(input, length, width);
+    public GadgetConfiguration wire(Side input, int length, int thickness) {
+        return wirers.get(input.getDirection()).wire(input, length, thickness);
     }
 
     @Override
@@ -43,17 +46,17 @@ public class FrobeniusWirer implements Wirer {
     }
 
     @Override
-    public int minWidth(Direction dir) {
-        return wirers.get(dir).minWidth();
+    public int minThickness(Direction dir) {
+        return wirers.get(dir).minThickness();
     }
 
     @Override
-    public int minLength(Direction dir, int width) {
-        return wirers.get(dir).minLength(width);
+    public int minLength(Direction dir, int thickness) {
+        return wirers.get(dir).minLength(thickness);
     }
 
     private static FrobeniusWirerHelper getFrobeniusWirerHelper(Iterable<Gadget> allWires) {
-        final Ordering<Gadget> orderByWidth = Ordering.natural().onResultOf(GadgetUtils.WIRE_WIDTH);
+        final Ordering<Gadget> orderByWidth = Ordering.natural().onResultOf(GadgetUtils.WIRE_THICKNESS);
         // get wires by length, select one with min width
         Map<Integer, Gadget> wires = ImmutableMap.copyOf(Maps.transformValues(
             Multimaps.index(allWires, GadgetUtils.WIRE_LENGTH).asMap(),
@@ -94,7 +97,7 @@ public class FrobeniusWirer implements Wirer {
         for (Gadget gadget : wiresByWidth) {
             gcd = IntMath.gcd(gcd, GadgetUtils.WIRE_LENGTH.apply(gadget));
             if (gcd == 1) {
-                return GadgetUtils.WIRE_WIDTH.apply(gadget);
+                return GadgetUtils.WIRE_THICKNESS.apply(gadget);
             }
         }
 
@@ -115,7 +118,7 @@ public class FrobeniusWirer implements Wirer {
     }
 
     private static Map<Integer, FrobeniusSolver> computeSolvers(List<Gadget> wiresByWidth, int minWidth) {
-        List<Integer> widths = Lists.transform(wiresByWidth, GadgetUtils.WIRE_WIDTH);
+        List<Integer> widths = Lists.transform(wiresByWidth, GadgetUtils.WIRE_THICKNESS);
         List<Integer> lengths = Lists.transform(wiresByWidth, GadgetUtils.WIRE_LENGTH);
         int index = search(widths, minWidth);
 
@@ -124,7 +127,7 @@ public class FrobeniusWirer implements Wirer {
             builder.put(i, new FrobeniusSolver(Ints.toArray(lengths.subList(0, i))));
 
             // skip duplicates
-            while (i+1 < widths.size() && widths.get(i+1) == widths.get(i)) {
+            while (i+1 < widths.size() && widths.get(i+1).equals(widths.get(i))) {
                 i++;
             }
         }
@@ -154,13 +157,13 @@ public class FrobeniusWirer implements Wirer {
         }
 
         private FrobeniusSolver getSolver(int width) {
-            List<Integer> widths = Lists.transform(wiresByWidth, GadgetUtils.WIRE_WIDTH);
+            List<Integer> widths = Lists.transform(wiresByWidth, GadgetUtils.WIRE_THICKNESS);
 
             int index = search(widths, width);
             return solvers.get(index);
         }
 
-        public int minWidth() {
+        public int minThickness() {
             return minWidth;
         }
 
