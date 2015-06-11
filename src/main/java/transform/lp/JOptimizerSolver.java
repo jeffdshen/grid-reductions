@@ -6,7 +6,7 @@ import com.joptimizer.optimizers.OptimizationResponse;
 
 public class JOptimizerSolver implements LPSolver {
     @Override
-    public double[] minimize(double[] c, double[][] A, double[] b) throws Exception {
+    public double[] minimize(double[] c, double[][] G, double[] h, double[][] A, double[] b) throws Exception {
         int n = c.length;
 
         // x >= 0
@@ -15,8 +15,10 @@ public class JOptimizerSolver implements LPSolver {
         // problem
         LPOptimizationRequest or = new LPOptimizationRequest();
         or.setC(c);
-        or.setG(A);
-        or.setH(b);
+        or.setG(G);
+        or.setH(h);
+        or.setA(A);
+        or.setB(b);
         or.setLb(lb);
         or.setDumpProblem(true);
 

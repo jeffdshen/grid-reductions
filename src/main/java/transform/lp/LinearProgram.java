@@ -1,5 +1,6 @@
 package transform.lp;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
 
@@ -11,31 +12,53 @@ import java.util.*;
 public class LinearProgram {
     private final BiMap<String, Integer> vars;
     private final Map<String, Double> objective;
-    private final List<Constraint> constraints;
+    private final List<Constraint> equal;
+    private final List<Constraint> unequal;
     private final double[] c;
     private final double[] b;
     private final double[][] a;
+    private final double[] h;
+    private final double[][] g;
 
-    private LinearProgram(BiMap<String, Integer> vars, Map<String, Double> objective, List<Constraint> constraints) {
+    private LinearProgram(
+        BiMap<String, Integer> vars, Map<String, Double> objective, List<Constraint> equal, List<Constraint> unequal
+    ) {
         this.vars = vars;
         this.objective = objective;
-        this.constraints = constraints;
+        this.equal = equal;
+        this.unequal = unequal;
         this.c = new double[vars.size()];
-        this.b = new double[constraints.size()];
-        this.a = new double[constraints.size()][];
+        this.b = new double[equal.size()];
+        this.a = new double[equal.size()][];
+        this.h = new double[unequal.size()];
+        this.g = new double[unequal.size()][];
 
+        // make objective
         for (String key : objective.keySet()) {
             c[vars.get(key)] = objective.get(key);
         }
 
-        for (int i = 0; i < constraints.size(); i++) {
-            Constraint c = constraints.get(i);
+        // make equalities
+        for (int i = 0; i < equal.size(); i++) {
+            Constraint c = equal.get(i);
             b[i] = c.getB();
             a[i] = new double[vars.size()];
 
             Map<String, Double> A = c.getA();
             for (String key : A.keySet()) {
                 a[i][vars.get(key)] = A.get(key);
+            }
+        }
+
+        // make inequalities
+        for (int i = 0; i < unequal.size(); i++) {
+            Constraint c = unequal.get(i);
+            h[i] = c.getB();
+            g[i] = new double[vars.size()];
+
+            Map<String, Double> A = c.getA();
+            for (String key : A.keySet()) {
+                g[i][vars.get(key)] = A.get(key);
             }
         }
     }
@@ -56,6 +79,14 @@ public class LinearProgram {
         return b;
     }
 
+    public double[][] getG() {
+        return g;
+    }
+
+    public double[] getH() {
+        return h;
+    }
+
     public Map<String, Double> getSolution(double[] solution) {
         BiMap<Integer, String> inverse = vars.inverse();
 
@@ -68,36 +99,41 @@ public class LinearProgram {
     }
 
     public Map<String, Double> getSolution(LPSolver solver) throws Exception {
-        return getSolution(solver.minimize(c, a, b));
+        return getSolution(solver.minimize(c, g, h, a, b));
     }
 
     public static class Builder {
-        private final ArrayList<Constraint> constraints;
-        private Map<String, Double> objective;
+        private final ArrayList<Constraint> equality;
+        private final ArrayList<Constraint> inequality;
+        private Map<String, ? extends Number> objective;
+        private final Set<String> vars;
 
         private Builder() {
-            constraints = new ArrayList<>();
+            equality = new ArrayList<>();
+            inequality = new ArrayList<>();
+            vars = new HashSet<>();
         }
 
-        public void setObjective(Map<String, Double> objective) {
+        public void setObjective(Map<String, ? extends Number> objective) {
             Preconditions.checkState(this.objective == null);
             this.objective = objective;
         }
 
         public void addConstraint(Constraint c) {
-            constraints.add(c);
+            if (c.isEquality()) {
+                equality.add(c);
+            } else {
+                inequality.add(c);
+            }
+
+            for (String key : c.getA().keySet()) {
+                vars.add(key);
+            }
         }
 
         public LinearProgram build() {
-            Set<String> vars = new HashSet<>();
             for (String key : objective.keySet()) {
                 vars.add(key);
-            }
-
-            for (Constraint c : constraints) {
-                for (String key : c.getA().keySet()) {
-                    vars.add(key);
-                }
             }
 
             ImmutableBiMap.Builder<String, Integer> index = ImmutableBiMap.builder();
@@ -108,7 +144,18 @@ public class LinearProgram {
                 i++;
             }
 
-            return new LinearProgram(index.build(), ImmutableMap.copyOf(objective), ImmutableList.copyOf(constraints));
+            Map<String, Double> obj = Maps.transformValues(ImmutableMap.copyOf(objective),
+                new Function<Number, Double>() {
+                    @Override
+                    public Double apply(Number input) {
+                        return input.doubleValue();
+                    }
+                }
+            );
+
+            return new LinearProgram(
+                index.build(), obj, ImmutableList.copyOf(equality), ImmutableList.copyOf(inequality)
+            );
         }
     }
 }

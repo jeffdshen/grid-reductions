@@ -6,11 +6,11 @@ import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 
-public class LessThanOrEqualTo implements Constraint {
+public class EqualTo implements Constraint {
     public final Map<String, Double> a;
     public final double b;
 
-    public LessThanOrEqualTo(
+    public EqualTo(
         Map<String, ? extends Number> lhs, double lhsC, Map<String, ? extends Number> rhs, double rhsC
     ) {
         b = rhsC - lhsC;
@@ -31,7 +31,7 @@ public class LessThanOrEqualTo implements Constraint {
 
     @Override
     public boolean isEquality() {
-        return false;
+        return true;
     }
 
     @Override
