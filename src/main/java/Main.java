@@ -10,11 +10,15 @@ import parser.GadgetParser;
 import parser.SATParser;
 import postprocessor.ImagePostProcessor;
 import transform.ConfigurationResolver;
-import transform.GadgetPlacer;
-import transform.GridPlacer;
+import transform.GadgetUtils;
+import transform.GridUtils;
+import transform.LPGadgetPlacer;
+import transform.planar.GridPlacer;
 import types.Gadget;
+import types.Grid;
 import types.configuration.AtomicConfiguration;
 import types.configuration.Configuration;
+import types.configuration.GadgetConfiguration;
 import utils.ResourceUtils;
 
 import javax.imageio.ImageIO;
@@ -33,23 +37,29 @@ public class Main {
         Configuration c = s.parseSAT(expr);
         ImmutableMap<String, Gadget> gadgets = getGadgets(gadgetFiles);
         Iterable<Configuration> configs = getConfigs(configFiles);
-        List<Gadget> wires = getWires(wireFiles);
+        Iterable<Gadget> wires = GadgetUtils.getSymmetries(getWires(wireFiles));
 
         AtomicConfiguration config = new ConfigurationResolver().resolve(c, configs, gadgets.keySet());
         GridPlacer placer = new GridPlacer(config, gadgets);
         placer.place();
-        GadgetPlacer gadgetPlacer = new GadgetPlacer(
-            wires,
-            gadgets.get("TURN"),
-            gadgets.get("CROSSOVER"),
-            gadgets.get("EMPTY"),
-            ImmutableList.copyOf(gadgets.values())
+
+        System.out.println(placer.getGrid());
+
+        Iterable<Gadget> crossovers = GadgetUtils.getRotations(gadgets.get("CROSSOVER"));
+        Iterable<Gadget> turns = GadgetUtils.getSymmetries(gadgets.get("TURN"));
+        Gadget empty = gadgets.get("EMPTY");
+        LPGadgetPlacer gadgetPlacer = new LPGadgetPlacer(
+            wires, turns, crossovers, empty, ImmutableList.copyOf(gadgets.values())
         );
+        GadgetConfiguration gadgetConfig = gadgetPlacer.place(placer.getGrid());
+        Grid<String> output = gadgetConfig.toGrid(empty);
 
         try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outFile)))) {
-            printStringArray(out, gadgetPlacer.place(placer.getGrid()));
+            out.print(output);
         }
-        visualizeAkari1600(gadgetPlacer.place(placer.getGrid()));
+
+        String[][] array = GridUtils.toStringArray(output);
+        visualizeAkari1600(array);
     }
 
     public List<Gadget> getWires(Iterable<File> wires) throws IOException {
@@ -59,7 +69,9 @@ public class Main {
         for (File file : wires) {
             System.out.println(file);
             Gadget gadget = parser.parseGadget(file);
-            builder.add(gadget);
+            if (gadget != null) {
+                builder.add(gadget);
+            }
         }
 
         return builder.build();

@@ -1,6 +1,7 @@
 package parser;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableList;
 import types.configuration.Configuration;
 import types.configuration.nodes.*;
 
@@ -31,16 +32,16 @@ public class SATParser {
 
         SATNode root = parseExpression();
 
-        labelCount = new HashMap<String, Integer>();
+        labelCount = new HashMap<>();
         //count variable nodes
         countVariables(root);
 
         //Create VARIABLE and SPLIT nodes
         //maps from var id to list of nodes corresponding to VARIABLE node + SPLIT nodes
-        Map<String, List<Node>> variableNodes = new HashMap<String, List<Node>>();
+        Map<String, List<Node>> variableNodes = new HashMap<>();
         for(String key: labelCount.keySet()){
             int num = labelCount.get(key);
-            List<Node> varNodeList = new ArrayList<Node>();
+            List<Node> varNodeList = new ArrayList<>();
             varNodeList.add(new Node(NodeType.LABELLED, "VARIABLE", id, 0, 1));
             id++;
             for(int i = 1; i < num; i++){
@@ -56,7 +57,7 @@ public class SATParser {
         }
 
         //build configuration
-        Map<SATNode, Node> nodes = new HashMap<SATNode, Node>();
+        Map<SATNode, Node> nodes = new HashMap<>();
         makeNodes(root, nodes, variableNodes);
         inputNode = new Node(NodeType.INPUT, null, id, 0, 0);
         id++;
@@ -65,10 +66,24 @@ public class SATParser {
         endNode = new Node(NodeType.LABELLED, "END", id, 1, 0);
         id++;
 
-        List<ConnectedNode> connectedNodes = new ArrayList<ConnectedNode>();
+        List<ConnectedNode> connectedNodes = new ArrayList<>();
         //init inputnode and variable/split nodes;
         //add Input Node
         connectedNodes.add(new ConnectedNode(inputNode, new ArrayList<Port>(), new ArrayList<Port>()));
+
+        // SPECIAL CASE: single variable, no operators
+        if (root.type == SATNode.SATNodeType.VAR) {
+            connectedNodes.add(new ConnectedNode(
+                nodes.get(root), ImmutableList.<Port>of(), ImmutableList.of(endNode.getInputPort(0))
+            ));
+            //create output
+            List<Port> endNodeIn = new ArrayList<>();
+            endNodeIn.add(nodes.get(root).getOutputPort(0));
+            connectedNodes.add(new ConnectedNode(endNode, endNodeIn, new ArrayList<Port>()));
+            connectedNodes.add(new ConnectedNode(outputNode, new ArrayList<Port>(), new ArrayList<Port>()));
+            return new Configuration("problem", connectedNodes);
+        }
+
         Map<String, List<Port>> varOutPorts = new HashMap<>();
         for(String key : labelCount.keySet()){
             varOutPorts.put(key, new ArrayList<Port>());
@@ -85,14 +100,14 @@ public class SATParser {
             }
             else{
                 //handle VARIABLE Node
-                List<Port> outs = new ArrayList<Port>();
+                List<Port> outs = new ArrayList<>();
                 outs.add(varNodeList.get(1).getInputPort(0));
                 connectedNodes.add(new ConnectedNode(varNodeList.get(0), new ArrayList<Port>(), outs));
                 int numVars = varNodeList.size();
                 for(int i = 1; i < numVars; i++){
-                    List<Port> in = new ArrayList<Port>();
+                    List<Port> in = new ArrayList<>();
                     in.add(varNodeList.get(i-1).getOutputPort(0));
-                    List<Port> out = new ArrayList<Port>();
+                    List<Port> out = new ArrayList<>();
                     if(i < numVars-1) {
                         //outport 0
                         out.add(varNodeList.get(i+1).getInputPort(0));
@@ -111,7 +126,7 @@ public class SATParser {
         buildConnectedNodes(root, nodes, connectedNodes, true);
 
         //create output
-        List<Port> endNodeIn = new ArrayList<Port>();
+        List<Port> endNodeIn = new ArrayList<>();
         endNodeIn.add(nodes.get(root).getOutputPort(0));
         connectedNodes.add(new ConnectedNode(endNode, endNodeIn, new ArrayList<Port>()));
         connectedNodes.add(new ConnectedNode(outputNode, new ArrayList<Port>(), new ArrayList<Port>()));
@@ -290,26 +305,23 @@ public class SATParser {
             throw new Exception("Parser Error: Expecting more tokens when parsing single expression");
         }
         String token = tokenizer.getNextToken();
-        if(token.equals("(")){
-            return parseExpression();
-        }
-        else if(token.equals(")")){
-            throw new Exception("Parser Error: invalid token ) when parsing expression");
-        }
-        else if(token.equals("&&")){
-            throw new Exception("Parser Error: invalid token && when parsing expression");
-        }
-        else if(token.equals("||")){
-            throw new Exception("Parser Error: invalid token || when parsing expression");
-        }
-        else if(token.equals("!")){
-            SATNode next = parseSingleExpression();
-            SATNode notNode = new SATNode(SATNode.SATNodeType.NOT);
-            notNode.setLeftChild(next);
-            next.setParent(notNode);
-            return notNode;
-        }else{
-            return parseVar(token);
+        switch (token) {
+            case "(":
+                return parseExpression();
+            case ")":
+                throw new Exception("Parser Error: invalid token ) when parsing expression");
+            case "&&":
+                throw new Exception("Parser Error: invalid token && when parsing expression");
+            case "||":
+                throw new Exception("Parser Error: invalid token || when parsing expression");
+            case "!":
+                SATNode next = parseSingleExpression();
+                SATNode notNode = new SATNode(SATNode.SATNodeType.NOT);
+                notNode.setLeftChild(next);
+                next.setParent(notNode);
+                return notNode;
+            default:
+                return parseVar(token);
         }
     }
 
@@ -320,28 +332,29 @@ public class SATParser {
             return currentNode;
         }
         String token = tokenizer.getNextToken();
-        if(token.equals(")")){
-            return currentNode;
-        }
-        else if(token.equals("&&")){
-            SATNode andNode = new SATNode(SATNode.SATNodeType.AND);
-            andNode.setLeftChild(currentNode);
-            currentNode.setParent(andNode);
-            SATNode rightChild = parseSingleExpression();
-            rightChild.setParent(andNode);
-            andNode.setRightChild(rightChild);
-            return parseGate(andNode);
-        }
-        else if(token.equals("||")){
-            SATNode orNode = new SATNode(SATNode.SATNodeType.OR);
-            orNode.setLeftChild(currentNode);
-            currentNode.setParent(orNode);
-            SATNode rightChild = parseSingleExpression();
-            rightChild.setParent(orNode);
-            orNode.setRightChild(rightChild);
-            return parseGate(orNode);
-        }else{
-            throw new Exception("Parser Error: Expecting && or || or ), got " + token);
+        switch (token) {
+            case ")":
+                return currentNode;
+            case "&&": {
+                SATNode andNode = new SATNode(SATNode.SATNodeType.AND);
+                andNode.setLeftChild(currentNode);
+                currentNode.setParent(andNode);
+                SATNode rightChild = parseSingleExpression();
+                rightChild.setParent(andNode);
+                andNode.setRightChild(rightChild);
+                return parseGate(andNode);
+            }
+            case "||": {
+                SATNode orNode = new SATNode(SATNode.SATNodeType.OR);
+                orNode.setLeftChild(currentNode);
+                currentNode.setParent(orNode);
+                SATNode rightChild = parseSingleExpression();
+                rightChild.setParent(orNode);
+                orNode.setRightChild(rightChild);
+                return parseGate(orNode);
+            }
+            default:
+                throw new Exception("Parser Error: Expecting && or || or ), got " + token);
         }
     }
 

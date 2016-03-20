@@ -23,6 +23,18 @@ public class GridUtils {
         return builder.build();
     }
 
+    public static String[][] toStringArray(Grid<String> grid) {
+        String[][] cells = new String[grid.getSizeX()][grid.getSizeY()];
+
+        for (int i = 0; i < grid.getSizeX(); i++) {
+            for (int j = 0; j < grid.getSizeY(); j++) {
+                cells[i][j] = grid.getCell(i, j);
+            }
+        }
+
+        return cells;
+    }
+
     public static <Cell> boolean equals(Grid<Cell> a, Grid<Cell> b) {
         if (a == null || b == null) {
             return a == null && b == null;

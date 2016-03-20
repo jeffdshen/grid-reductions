@@ -120,6 +120,7 @@ public class LinearProgram {
         }
 
         public void addConstraint(Constraint c) {
+            System.out.println(c);
             if (c.isEquality()) {
                 equality.add(c);
             } else {

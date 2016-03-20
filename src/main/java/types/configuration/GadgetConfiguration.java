@@ -81,6 +81,7 @@ public class GadgetConfiguration {
             Location loc = configuration.offsets.get(i);
             Gadget gadget = configuration.gadgets.get(i);
             if (!canConnect(loc.add(offset), gadget)) {
+                System.out.println(loc);
                 return false;
             }
         }
@@ -185,6 +186,7 @@ public class GadgetConfiguration {
         for (int i = 0; i < gadget.getSizeX(); i++) {
             for (int j = 0; j < gadget.getSizeY(); j++) {
                 if (occupied.containsKey(offset.add(i, j))) {
+                    System.out.println(".." + offset.add(i, j));
                     return false;
                 }
             }
@@ -194,6 +196,7 @@ public class GadgetConfiguration {
             Side input = gadget.getInput(i).add(offset);
             Side output = input.opposite();
             if (!outputs.contains(output) && occupied.containsKey(output.getLocation())) {
+                System.out.println("." + output);
                 return false;
             }
         }
@@ -202,6 +205,10 @@ public class GadgetConfiguration {
             Side output = gadget.getOutput(i).add(offset);
             Side input = output.opposite();
             if (!inputs.contains(input) && occupied.containsKey(input.getLocation())) {
+                System.out.println("..." + input + "," + !inputs.contains(input) + "," + occupied.containsKey(input.getLocation()));
+                System.out.println(gadget);
+                System.out.println(inputs);
+                System.out.println(outputs);
                 return false;
             }
         }
@@ -232,6 +239,10 @@ public class GadgetConfiguration {
             grid.put(gadget, offset);
         }
         return grid;
+    }
+
+    public Grid<String> toGrid(Gadget empty) {
+        return toGrid(empty.getCell(0, 0));
     }
 
     private int getID() {

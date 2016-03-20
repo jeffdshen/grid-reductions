@@ -1,10 +1,11 @@
-package transform;
+package transform.planar;
 
 import com.google.common.base.Function;
 import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
+import transform.GadgetConverter;
 import types.Direction;
 import types.Gadget;
 import types.Location;
@@ -15,6 +16,7 @@ import types.configuration.nodes.AtomicNode;
 import types.configuration.nodes.AtomicPort;
 import types.configuration.nodes.Port;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 
 public class GridPlacer {
@@ -51,13 +53,15 @@ public class GridPlacer {
             grid.put(nodeGrid, loc);
             connect(node);
         }
+
+        expander.expandLast(grid);
     }
 
     private void connect(AtomicNode node) {
         for (int i = 0; i < node.inputSize(); i++) {
             AtomicPort port = node.getInputPort(i);
-            SearchVertex start = find(port);
-            SearchVertex end = find(config.getPort(port));
+            SearchVertex end = find(port);
+            SearchVertex start = find(config.getPort(port));
 
             if (start == null || end == null) {
                 port = config.getPort(port);
@@ -194,6 +198,7 @@ public class GridPlacer {
             cur = prev.get(cur);
         }
         if (cur == null) {
+            System.out.println(grid);
             throw new IllegalArgumentException(String.format("Unexpected error, no path from %s to %s", start, end));
         }
         builder.add(cur);
@@ -251,7 +256,7 @@ public class GridPlacer {
         }
 
         @Override
-        public int compareTo(VertexDistance o) {
+        public int compareTo(@Nonnull VertexDistance o) {
             return this.dist - o.dist;
         }
 

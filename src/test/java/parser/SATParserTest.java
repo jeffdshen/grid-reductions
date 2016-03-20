@@ -5,8 +5,6 @@ import types.configuration.Configuration;
 import types.configuration.nodes.Node;
 import types.configuration.nodes.Port;
 
-import static org.testng.Assert.*;
-
 public class SATParserTest {
 
     @Test

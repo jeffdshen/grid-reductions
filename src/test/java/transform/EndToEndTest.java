@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import org.testng.annotations.Test;
 import parser.GadgetParser;
 import parser.SATParser;
+import transform.planar.GridPlacer;
 import types.Gadget;
 import types.configuration.AtomicConfiguration;
 import types.configuration.Configuration;
@@ -53,6 +54,7 @@ public class EndToEndTest {
     public String getStringArray(String[][] array){
         StringBuilder str = new StringBuilder();
         for(int j = 0; j < array[0].length; j++){
+            //noinspection ForLoopReplaceableByForEach
             for(int i = 0; i < array.length; i++){
                 str.append(array[i][j]);
                 str.append("");

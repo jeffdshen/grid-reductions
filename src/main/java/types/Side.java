@@ -16,6 +16,14 @@ public class Side {
         this.d = d;
     }
 
+    public int getX() {
+        return loc.getX();
+    }
+
+    public int getY() {
+        return loc.getY();
+    }
+
     public Location getLocation() {
         return loc;
     }

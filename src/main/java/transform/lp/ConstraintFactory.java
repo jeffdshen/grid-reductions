@@ -28,6 +28,13 @@ public class ConstraintFactory {
         return lessThanOrEqualTo(lhs, rhsC);
     }
 
+    public static Constraint atMost(
+        Map<String, ? extends Number> lhs, Number lhsC, Map<String, ? extends Number> rhs
+    ) {
+        return lessThanOrEqualTo(lhs, lhsC, rhs, 0.0);
+    }
+
+
     public static Constraint atMost(Map<String, ? extends Number> lhs, Map<String, ? extends Number> rhs) {
         return lessThanOrEqualTo(lhs, 0.0, rhs, 0.0);
     }
@@ -130,5 +137,9 @@ public class ConstraintFactory {
         Map<String, ? extends Number> lhs, Map<String, ? extends Number> rhs
     ) {
         return equalTo(lhs, 0., rhs, 0.);
+    }
+
+    public static Constraint equalTo(Map<String, ? extends Number> lhs, Number rhsC) {
+        return equalTo(lhs, 0., ImmutableMap.<String, Number>of(), rhsC);
     }
 }

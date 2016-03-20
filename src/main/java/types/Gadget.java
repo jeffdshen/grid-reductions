@@ -2,7 +2,9 @@ package types;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableBiMap;
+import com.google.common.collect.ImmutableList;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -16,6 +18,9 @@ public class Gadget implements Grid<String> {
     private final ImmutableBiMap<Integer, Side> inputs;
     private final ImmutableBiMap<Integer, Side> outputs;
 
+    private final ImmutableList<Side> inputList;
+    private final ImmutableList<Side> outputList;
+
     public Gadget(String name, String[][] cells, List<Side> inputs, List<Side> outputs) {
         Preconditions.checkNotNull(cells);
         Preconditions.checkArgument(cells.length > 0);
@@ -28,6 +33,8 @@ public class Gadget implements Grid<String> {
 
         this.inputs = getLocationMap(inputs);
         this.outputs = getLocationMap(outputs);
+        inputList = ImmutableList.copyOf(inputs);
+        outputList = ImmutableList.copyOf(outputs);
     }
 
     private static ImmutableBiMap<Integer, Side> getLocationMap(List<Side> sides) {
@@ -114,12 +121,40 @@ public class Gadget implements Grid<String> {
         return outputs.inverse().get(side);
     }
 
+    public List<Side> getInputs() {
+        return inputList;
+    }
+
     public Side getInput(int index) {
         return inputs.get(index);
     }
 
+    public List<Side> getOutputs() {
+        return outputList;
+    }
+
     public Side getOutput(int index) {
         return outputs.get(index);
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = 71 * hash + this.name.hashCode();
+        hash = 71 * hash + this.inputList.hashCode();
+        hash = 71 * hash + this.outputList.hashCode();
+        hash = 71 * hash + Arrays.deepHashCode(this.cells);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o instanceof Gadget) {
+            Gadget that = (Gadget) o;
+            return this.name.equals(that.name) && this.inputList.equals(that.inputList)
+                && this.outputList.equals(that.outputList) && Arrays.deepEquals(this.cells, that.cells);
+        }
+        return super.equals(o);
     }
 
     @Override

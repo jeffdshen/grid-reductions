@@ -6,6 +6,7 @@ import com.google.common.collect.ImmutableSet;
 import org.testng.annotations.Test;
 import parser.GadgetParser;
 import parser.SATParser;
+import transform.planar.GridPlacer;
 import types.Gadget;
 import types.configuration.AtomicConfiguration;
 import types.configuration.Configuration;

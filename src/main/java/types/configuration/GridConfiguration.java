@@ -37,11 +37,31 @@ public class GridConfiguration extends MutableGrid<Cell> {
 
                 // set sides
                 for (Direction dir : Direction.values()) {
-                    char c = '-';
-                    if (dir == Direction.NORTH || dir == Direction.SOUTH) {
-                        c = '|';
+                    Direction flow = null;
+                    if (cell.isInput(dir)) {
+                        flow = dir.opposite();
                     }
-                    grid[x + dir.getX()][y + dir.getY()] = cell.isInput(dir) || cell.isOutput(dir) ? c : ' ';
+                    if (cell.isOutput(dir)) {
+                        flow = dir;
+                    }
+                    char c = ' ';
+                    if (flow != null) {
+                        switch (flow) {
+                            case NORTH:
+                                c = '^';
+                                break;
+                            case SOUTH:
+                                c = 'V';
+                                break;
+                            case EAST:
+                                c = '>';
+                                break;
+                            case WEST:
+                                c = '<';
+                                break;
+                        }
+                    }
+                    grid[x + dir.getX()][y + dir.getY()] = c;
                 }
             }
         }

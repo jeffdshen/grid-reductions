@@ -2,8 +2,11 @@ package transform.lp;
 
 import com.google.common.base.Function;
 import com.google.common.base.Functions;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 
+import javax.annotation.Nullable;
 import java.util.Map;
 
 public class LessThanOrEqualTo implements Constraint {
@@ -42,5 +45,19 @@ public class LessThanOrEqualTo implements Constraint {
     @Override
     public double getB() {
         return b;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        Joiner.on(" + ").appendTo(builder, Iterables.transform(a.keySet(), new Function<String, Object>() {
+            @Nullable
+            @Override
+            public Object apply(@Nullable String s) {
+                return a.get(s) + " * " + s;
+            }
+        }));
+        builder.append(" <= ").append(b);
+        return builder.toString();
     }
 }
