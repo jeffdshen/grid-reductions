@@ -7,6 +7,7 @@ import types.configuration.nodes.Port;
 
 public class SATParserTest {
 
+    // TODO make unit test
     @Test
     public void testParseSAT() throws Exception {
 //        SATTokenizer t = new SATTokenizer("!(x1||!y&&z) || (!x2 || y) && y");

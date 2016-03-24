@@ -13,6 +13,7 @@ import types.configuration.Configuration;
 import utils.ResourceUtils;
 
 public class GridPlacerTest {
+    // todo make unit test
     @Test
     public void testPlace() throws Exception {
         SATParser s = new SATParser();

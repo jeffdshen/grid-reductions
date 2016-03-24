@@ -21,6 +21,7 @@ import java.util.*;
 
 import static transform.lp.ConstraintFactory.*;
 
+// TODO write a test
 public class LPGadgetPlacer {
     private final Gadget empty;
 

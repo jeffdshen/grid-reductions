@@ -11,6 +11,7 @@ import java.util.Map;
 
 public class ImagePostProcessorTest {
 
+    // TODO make unit test, make process return image?
     @Test
     public void testParseGadget() throws Exception {
         BufferedImage zero = ImageIO.read(getClass().getResourceAsStream("/Akari/images/zero10.png"));

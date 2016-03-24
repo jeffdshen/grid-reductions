@@ -16,6 +16,7 @@ import static org.testng.Assert.assertEquals;
 
 public class GadgetPlacerTest {
 
+    // TODO delete?
     @Test
     public void testPlace() throws Exception {
         List<Gadget> fatWires = new ArrayList<>();
