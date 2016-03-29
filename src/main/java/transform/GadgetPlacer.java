@@ -109,7 +109,7 @@ public class GadgetPlacer {
         }
 
         frobSolver = new FrobeniusSolver(this.wireLengths);
-        minWireLength = frobSolver.getSolvableCutoff()+1;
+        minWireLength = frobSolver.getSolvableCutoff();
         minWireLength = Math.max(minWireLength, maxWireWidth);
 
         //determine size for each Cell
@@ -510,7 +510,7 @@ public class GadgetPlacer {
                         offset = getAlignmentOffset(currentGroup.getBaseGadget(), curIdx, wire, 0, true);
                     }
                     else{
-                        offset = getAlignmentOffset(wire, 0, currentGroup.getBaseGadget(), curIdx, flipped);
+                        offset = getAlignmentOffset(wire, 0, currentGroup.getBaseGadget(), curIdx, false);
                     }
                     nextGroup.addGroup(currentGroup, offset);
                 }

@@ -1,6 +1,5 @@
 package transform;
 
-import com.google.common.base.Function;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
@@ -48,64 +47,11 @@ public class LPGadgetPlacer {
         }
 
 
-        this.wires = getWireMap(wires);
-        this.gadgets = getGadgetMap(gadgets);
-        this.turns = getTurnMap(turns);
-        this.crossovers = getCrossoverMap(crossovers);
+        this.wires = GadgetUtils.getWireMap(wires);
+        this.gadgets = GadgetUtils.getGadgetMap(gadgets);
+        this.turns = GadgetUtils.getTurnMap(turns);
+        this.crossovers = GadgetUtils.getCrossoverMap(crossovers);
         this.wirer = new FrobeniusWirer(wires);
-    }
-
-    private static Map<String, Gadget> getGadgetMap(Iterable<Gadget> gadgets) {
-        return Maps.uniqueIndex(gadgets, new Function<Gadget, String>() {
-            @Override
-            public String apply(Gadget input) {
-                return input.getName();
-            }
-        });
-    }
-
-    private static Multimap<Direction, Gadget> getWireMap(Iterable<Gadget> gadgets) {
-        ImmutableMultimap.Builder<Direction, Gadget> wires = ImmutableMultimap.builder();
-        for (Gadget g : gadgets) {
-            Preconditions.checkArgument(g.getInputSize() == 1, "Wire input size must be 1");
-            Preconditions.checkArgument(g.getOutputSize() == 1, "Wire output size must be 1");
-            Preconditions.checkArgument(g.getInput(0).getDirection().opposite() == g.getOutput(0).getDirection(),
-                "Wire input and output must have opposite directions");
-            wires.put(g.getOutput(0).getDirection(), g);
-        }
-        return wires.build();
-    }
-
-    private static Map<List<Direction>, Gadget> getTurnMap(Iterable<Gadget> gadgets) {
-        ImmutableMap.Builder<List<Direction>, Gadget> turns = ImmutableMap.builder();
-        for (Gadget g : gadgets) {
-            Preconditions.checkArgument(g.getInputSize() == 1, "Turn input size must be 1");
-            Preconditions.checkArgument(g.getOutputSize() == 1, "Turn output size must be 1");
-            Preconditions.checkArgument(g.getInput(0).getDirection().perpendicular(g.getOutput(0).getDirection()),
-                "Turn input and output must have perpendicular directions");
-            turns.put(ImmutableList.of(g.getInput(0).getDirection(), g.getOutput(0).getDirection()), g);
-        }
-
-        return turns.build();
-    }
-
-    private static Map<Set<Direction>, Gadget> getCrossoverMap(Iterable<Gadget> gadgets) {
-        ImmutableMap.Builder<Set<Direction>, Gadget> crossovers = ImmutableMap.builder();
-        for (Gadget g : gadgets) {
-            Preconditions.checkArgument(g.getInputSize() == 2, "Turn input size must be 2");
-            Preconditions.checkArgument(g.getOutputSize() == 2, "Turn output size must be 2");
-            Direction i0 = g.getInput(0).getDirection();
-            Direction i1 = g.getInput(1).getDirection();
-            Direction o0 = g.getOutput(0).getDirection();
-            Direction o1 = g.getOutput(1).getDirection();
-
-            Preconditions.checkArgument(i0.opposite() == o0, "Turn input and output must have opposite directions");
-            Preconditions.checkArgument(i1.opposite() == o1, "Turn input and output must have opposite directions");
-            Preconditions.checkArgument(i0.perpendicular(i1), "Turn inputs must have perpendicular directions");
-            crossovers.put(ImmutableSet.of(i0, i1), g);
-        }
-
-        return crossovers.build();
     }
 
     private void addBasicConstraints(GridConfiguration config, LinearProgram.Builder lp) throws Exception {

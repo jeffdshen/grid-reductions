@@ -20,7 +20,7 @@ public class LinearDiophantineSolver {
             "Error: provided wire lengths are not relatively prime : " + values);
 
         this.values = values;
-        this.minIndex = minIndex(values);
+        this.minIndex = MathUtils.indexMin(values);
         this.min = values.get(minIndex);
         this.coefficients = solve(values);
     }
@@ -47,9 +47,10 @@ public class LinearDiophantineSolver {
             return ImmutableList.of();
         }
 
-        int index = minIndex(values);
+        int index = MathUtils.indexMin(values);
         int min = values.get(index);
 
+        // calculate all the coefficients modulo min
         @SuppressWarnings("unchecked")
         Iterable<Integer>[] coefficients = new Iterable[min];
         coefficients[0] = ImmutableList.of();
@@ -87,21 +88,6 @@ public class LinearDiophantineSolver {
             builder.add(x);
         }
         return builder.build();
-    }
-
-    private static int minIndex(List<Integer> values) {
-        int min = values.get(0);
-        int minIndex = 0;
-
-        int index = 0;
-        for (Integer value : values) {
-            if (value < min) {
-                min = value;
-                minIndex = index;
-            }
-            index++;
-        }
-        return minIndex;
     }
 
     public List<Integer> getValues() {

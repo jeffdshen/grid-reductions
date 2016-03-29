@@ -3,7 +3,6 @@ package transform.wiring;
 import com.google.common.base.Function;
 import com.google.common.collect.*;
 import com.google.common.math.IntMath;
-import com.google.common.primitives.Ints;
 import transform.GadgetUtils;
 import types.Direction;
 import types.Gadget;
@@ -17,6 +16,7 @@ import java.util.Map;
 /**
  * NOTE here, width means thickness
  */
+// TODO swap with linear diophantine solver?
 public class FrobeniusWirer implements Wirer {
     private Map<Direction, FrobeniusWirerHelper> wirers;
 
@@ -124,7 +124,7 @@ public class FrobeniusWirer implements Wirer {
 
         ImmutableMap.Builder<Integer, FrobeniusSolver> builder = ImmutableMap.builder();
         for (int i = index; i <= wiresByWidth.size(); i++) {
-            builder.put(i, new FrobeniusSolver(Ints.toArray(lengths.subList(0, i))));
+            builder.put(i, new FrobeniusSolver(lengths.subList(0, i)));
 
             // skip duplicates
             while (i+1 < widths.size() && widths.get(i+1).equals(widths.get(i))) {
@@ -190,7 +190,7 @@ public class FrobeniusWirer implements Wirer {
         }
 
         public int minLength(int width) {
-            return getSolver(width).getSolvableCutoff() + 1;
+            return getSolver(width).getSolvableCutoff();
         }
     }
 }

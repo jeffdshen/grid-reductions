@@ -5,6 +5,7 @@ import org.apache.log4j.Logger;
 import parser.GadgetParser;
 
 import javax.imageio.ImageIO;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -45,6 +46,13 @@ public class ImagePostProcessor {
                 }
             }
         }
+
+        // TODO move this to a utils class
+        JFrame frame = new JFrame();
+        frame.getContentPane().add(new JLabel(new ImageIcon(image)));
+        frame.pack();
+        frame.setVisible(true);
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
         try {
             ImageIO.write(image, "PNG", output);

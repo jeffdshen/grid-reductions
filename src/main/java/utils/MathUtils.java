@@ -20,4 +20,27 @@ public class MathUtils {
         }
         return false;
     }
+
+
+    public static int indexMin(List<Integer> values) {
+        int min = values.get(0);
+        int minIndex = 0;
+
+        int index = 0;
+        for (Integer value : values) {
+            if (value < min) {
+                min = value;
+                minIndex = index;
+            }
+            index++;
+        }
+        return minIndex;
+    }
+
+    /**
+     * Gives the index of the minimum element
+     */
+    public static int indexMin(int[] values) {
+        return indexMin(Ints.asList(values));
+    }
 }
