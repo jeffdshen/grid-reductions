@@ -46,6 +46,10 @@ public class Side {
 
     public Side add(Direction d){ return add(d.getX(), d.getY()); }
 
+    public Side add(Direction d, int multiple) {
+        return add(d.getX() * multiple, d.getY() * multiple);
+    }
+
     public Side subtract(int x, int y) {
         return add(-x, -y);
     }
@@ -58,6 +62,13 @@ public class Side {
         return subtract(dir.getX(), dir.getY());
     }
 
+    public Side subtract(Direction d, int multiple) {
+        return subtract(d.getX() * multiple, d.getY() * multiple);
+    }
+
+    public int dot(Direction d) {
+        return loc.dot(d);
+    }
 
     @Override
     public int hashCode() {

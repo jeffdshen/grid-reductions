@@ -3,10 +3,7 @@ package types.configuration;
 import com.google.common.collect.ImmutableMap;
 import types.*;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A configuration of gadgets that can be converted to a grid of strings
@@ -50,7 +47,7 @@ public class GadgetConfiguration {
 
     /**
      * Connects the configuration with the given offset to this one
-     * @return an mapping from ids in the parameter configuration to the new gadgets
+     * @return a mapping from ids in the parameter configuration to the new gadgets
      */
     public Map<Integer, Integer> connect(Location offset, GadgetConfiguration configuration) {
         ImmutableMap.Builder<Integer, Integer> builder = ImmutableMap.builder();
@@ -81,7 +78,6 @@ public class GadgetConfiguration {
             Location loc = configuration.offsets.get(i);
             Gadget gadget = configuration.gadgets.get(i);
             if (!canConnect(loc.add(offset), gadget)) {
-                System.out.println(loc);
                 return false;
             }
         }
@@ -186,7 +182,6 @@ public class GadgetConfiguration {
         for (int i = 0; i < gadget.getSizeX(); i++) {
             for (int j = 0; j < gadget.getSizeY(); j++) {
                 if (occupied.containsKey(offset.add(i, j))) {
-                    System.out.println(".." + offset.add(i, j));
                     return false;
                 }
             }
@@ -196,7 +191,6 @@ public class GadgetConfiguration {
             Side input = gadget.getInput(i).add(offset);
             Side output = input.opposite();
             if (!outputs.contains(output) && occupied.containsKey(output.getLocation())) {
-                System.out.println("." + output);
                 return false;
             }
         }
@@ -205,15 +199,27 @@ public class GadgetConfiguration {
             Side output = gadget.getOutput(i).add(offset);
             Side input = output.opposite();
             if (!inputs.contains(input) && occupied.containsKey(input.getLocation())) {
-                System.out.println("..." + input + "," + !inputs.contains(input) + "," + occupied.containsKey(input.getLocation()));
-                System.out.println(gadget);
-                System.out.println(inputs);
-                System.out.println(outputs);
                 return false;
             }
         }
 
         return true;
+    }
+
+    public Side getOutputSide(int id, int port) {
+        return gadgets.get(id).getOutput(port).add(offsets.get(id));
+    }
+
+    public Side getInputSide(int id, int port) {
+        return gadgets.get(id).getInput(port).add(offsets.get(id));
+    }
+
+    public Set<Side> getInputs() {
+        return Collections.unmodifiableSet(this.inputs);
+    }
+
+    public Set<Side> getOutputs() {
+        return Collections.unmodifiableSet(this.outputs);
     }
 
     /**
@@ -261,17 +267,11 @@ public class GadgetConfiguration {
 
 
     private Location calcInputOffset(int fromGadgetID, int outputPort, Gadget newGadget, int inputPort) {
-        Gadget gadget = gadgets.get(fromGadgetID);
-        Location offset = offsets.get(fromGadgetID);
-        Side output = gadget.getOutput(outputPort).add(offset);
-        return calcInputOffset(output, newGadget, inputPort);
+        return calcInputOffset(getOutputSide(fromGadgetID, outputPort), newGadget, inputPort);
     }
 
     private Location calcOutputOffset(int fromGadgetID, int inputPort, Gadget newGadget, int outputPort) {
-        Gadget gadget = gadgets.get(fromGadgetID);
-        Location offset = offsets.get(fromGadgetID);
-        Side input = gadget.getInput(inputPort).add(offset);
-        return calcOutputOffset(input, newGadget, outputPort);
+        return calcOutputOffset(getInputSide(fromGadgetID, inputPort), newGadget, outputPort);
     }
 }
 

@@ -1,5 +1,6 @@
 package types;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableMap;
 
 public enum Direction {
@@ -20,15 +21,33 @@ public enum Direction {
         return getClosestDirection(loc.getX(), loc.getY());
     }
 
-        /**
-         * Gets the closest direction
-         */
+    /**
+     * Gets the closest direction
+     */
     public static Direction getClosestDirection(int x, int y) {
         if (x >= y) {
             return x >= -y ? EAST : NORTH;
         } else {
             return x >= -y ? SOUTH : WEST;
         }
+    }
+
+    public static Direction getScalarDirection(Location loc) {
+        return getScalarDirection(loc.getX(), loc.getY());
+    }
+
+    public static Direction getScalarDirection(int x, int y) {
+        Preconditions.checkArgument(x == 0 || y == 0, String.format("(%d, %d) is not a scalar of a direction", x, y));
+        return getClosestDirection(x, y);
+    }
+
+    public static Direction getDirection(Location loc) {
+        return getDirection(loc.getX(), loc.getY());
+    }
+
+    public static Direction getDirection(int x, int y) {
+        Preconditions.checkArgument(x * x + y * y == 1, String.format("(%d, %d) is not a direction", x, y));
+        return getClosestDirection(x, y);
     }
 
     private static ImmutableMap<Direction, Direction> constructOpposites() {
@@ -102,5 +121,13 @@ public enum Direction {
 
     public boolean parallel(Direction d) {
         return !perpendicular(d);
+    }
+
+    public boolean isPositive() {
+        return x > 0 || y > 0;
+    }
+
+    public boolean isNegative() {
+        return x < 0 || y < 0;
     }
 }

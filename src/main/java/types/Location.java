@@ -19,6 +19,10 @@ public class Location {
         return add(d.getX(), d.getY());
     }
 
+    public Location add(Direction d, int multiple) {
+        return add(d.getX() * multiple, d.getY() * multiple);
+    }
+
     public Location subtract(int x, int y) {
         return add(-x, -y);
     }
@@ -29,6 +33,14 @@ public class Location {
 
     public Location subtract(Direction dir) {
         return subtract(dir.getX(), dir.getY());
+    }
+
+    public Location subtract(Direction d, int multiple) {
+        return subtract(d.getX() * multiple, d.getY() * multiple);
+    }
+
+    public int dot(Direction d) {
+        return x * d.getX() + y * d.getY();
     }
 
     @Override

@@ -198,8 +198,8 @@ public class GridPlacer {
             cur = prev.get(cur);
         }
         if (cur == null) {
-            System.out.println(grid);
-            throw new IllegalArgumentException(String.format("Unexpected error, no path from %s to %s", start, end));
+//            System.out.println(grid);
+            throw new IllegalStateException(String.format("Unexpected error, no path from %s to %s", start, end));
         }
         builder.add(cur);
         return builder.build().reverse();

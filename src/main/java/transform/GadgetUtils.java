@@ -3,9 +3,15 @@ package transform;
 import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
+import com.google.common.io.PatternFilenameFilter;
+import parser.GadgetParser;
 import types.*;
 
 import javax.annotation.Nullable;
+import java.io.File;
+import java.io.FilenameFilter;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -153,16 +159,19 @@ public class GadgetUtils {
     public static Map<Set<Direction>, Gadget> getCrossoverMap(Iterable<Gadget> gadgets) {
         ImmutableMap.Builder<Set<Direction>, Gadget> crossovers = ImmutableMap.builder();
         for (Gadget g : gadgets) {
-            Preconditions.checkArgument(g.getInputSize() == 2, "Turn input size must be 2");
-            Preconditions.checkArgument(g.getOutputSize() == 2, "Turn output size must be 2");
+            Preconditions.checkArgument(g.getInputSize() == 2, "Crossover input size must be 2");
+            Preconditions.checkArgument(g.getOutputSize() == 2, "Crossover output size must be 2");
             Direction i0 = g.getInput(0).getDirection();
             Direction i1 = g.getInput(1).getDirection();
             Direction o0 = g.getOutput(0).getDirection();
             Direction o1 = g.getOutput(1).getDirection();
 
-            Preconditions.checkArgument(i0.opposite() == o0, "Turn input and output must have opposite directions");
-            Preconditions.checkArgument(i1.opposite() == o1, "Turn input and output must have opposite directions");
-            Preconditions.checkArgument(i0.perpendicular(i1), "Turn inputs must have perpendicular directions");
+            Preconditions.checkArgument(i0.opposite() == o0,
+                "Crossover input and output must have opposite directions");
+            Preconditions.checkArgument(i1.opposite() == o1,
+                "Crossover input and output must have opposite directions");
+            Preconditions.checkArgument(i0.perpendicular(i1),
+                "Crossover inputs must have perpendicular directions");
             crossovers.put(ImmutableSet.of(i0, i1), g);
         }
 
@@ -192,6 +201,32 @@ public class GadgetUtils {
         }
 
         return turns.build();
+    }
+
+    /**
+     * Returns all gadgets in the directory, where files are filtered by the file name
+     */
+    public static Iterable<Gadget> getGadgets(File dir, FilenameFilter filter) throws IOException {
+        return getGadgets(Arrays.asList(dir.listFiles(filter)));
+    }
+
+    /**
+     * Returns all gadgets in the directory, where file names are of the form *.txt
+     */
+    public static Iterable<Gadget> getGadgets(File dir) throws IOException {
+        return getGadgets(dir, new PatternFilenameFilter(".*\\.txt"));
+    }
+
+    public static Iterable<Gadget> getGadgets(Iterable<File> gadgets) throws IOException {
+        GadgetParser parser = new GadgetParser();
+
+        ImmutableList.Builder<Gadget> builder = ImmutableList.builder();
+        for (File file : gadgets) {
+            Gadget gadget = parser.parseGadget(file);
+            builder.add(gadget);
+        }
+
+        return builder.build();
     }
 
     /**

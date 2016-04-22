@@ -1,12 +1,30 @@
 package transform;
 
 import com.google.common.collect.ImmutableList;
+import types.Direction;
 import types.Grid;
+import types.Location;
 
 import java.util.List;
 import java.util.Objects;
 
 public class GridUtils {
+    public static <E> int getSize(Grid<E> g, Direction dir) {
+        Direction x = Direction.getDirection(1, 0);
+        return dir.parallel(x) ? g.getSizeX() : g.getSizeY();
+    }
+
+    /**
+     * Number of cells from this location to the edge of the grid directly in this direction
+     */
+    public static <E> int countCellsInDir(Grid<E> g, Location loc, Direction dir) {
+        Direction x = Direction.getDirection(1, 0);
+        int locX = dir.parallel(x) ? loc.getX() : loc.getY();
+        int gX = dir.isPositive() ? (dir.parallel(x) ? g.getSizeX() - 1: g.getSizeY() - 1) : 0;
+
+        return Math.abs(gX - locX);
+    }
+
     public static <E> List<E> sliceX(Grid<E> g, int x) {
         ImmutableList.Builder<E> builder = ImmutableList.builder();
         for (int y = 0; y < g.getSizeY(); y++) {

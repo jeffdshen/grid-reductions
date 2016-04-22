@@ -37,7 +37,7 @@ public class FrobeniusWirer implements Wirer {
 
     @Override
     public GadgetConfiguration wire(Side input, int length, int thickness) {
-        return wirers.get(input.getDirection()).wire(input, length, thickness);
+        return wirers.get(input.getDirection().opposite()).wire(input, length, thickness);
     }
 
     @Override
@@ -181,7 +181,7 @@ public class FrobeniusWirer implements Wirer {
                     if (lastId != null) {
                         lastId = config.connectInputPort(lastId, 0, wire, 0);
                     } else {
-                        lastId = config.connectInputPort(input, wire, 0);
+                        lastId = config.connectInputPort(input.opposite(), wire, 0);
                     }
                 }
             }

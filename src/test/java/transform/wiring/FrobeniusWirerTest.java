@@ -12,6 +12,8 @@ import utils.ResourceUtils;
 import static org.testng.Assert.*;
 
 public class FrobeniusWirerTest {
+    // TODO test frobenius number = 0, length = 0
+
     @Test
     public void testConnect() throws Exception {
         GadgetParser parser = new GadgetParser();
@@ -26,10 +28,10 @@ public class FrobeniusWirerTest {
         assertEquals(wirer.minLength(Direction.EAST, 0), 24);
         assertEquals(wirer.minLength(Direction.EAST, 2), 2);
         assertEquals(wirer.minLength(Direction.EAST, 1), 2);
-        Grid<String> grid = wirer.wire(new Side(-1, 1, Direction.EAST), 8, 1).toGrid(empty.getCell(0, 0));
+        Grid<String> grid = wirer.wire(new Side(0, 1, Direction.WEST), 8, 1).toGrid(empty.getCell(0, 0));
         assertEquals(grid.getSizeX(), 8);
         assertEquals(grid.getSizeY(), 3);
-        Grid<String> grid2 = wirer.wire(new Side(-1, 1, Direction.EAST), 24, 0).toGrid(empty.getCell(0, 0));
+        Grid<String> grid2 = wirer.wire(new Side(0, 1, Direction.WEST), 24, 0).toGrid(empty.getCell(0, 0));
         assertEquals(grid2.getSizeX(), 24);
         assertEquals(grid2.getSizeY(), 2);
     }

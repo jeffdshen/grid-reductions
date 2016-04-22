@@ -5,8 +5,8 @@ import types.configuration.GridConfiguration;
 import types.configuration.cells.Cell;
 
 public class GridExpander {
-    AreaCellExpander area;
-    WireCellExpander wire;
+    private AreaCellExpander area;
+    private WireCellExpander wire;
     public GridExpander() {
         area = new AreaCellExpander();
         wire = new WireCellExpander();
@@ -34,7 +34,7 @@ public class GridExpander {
         // flip meaning of x and y if not isX
         int sizeX = isX ? grid.getSizeX() : grid.getSizeY();
         int sizeY = isX ? grid.getSizeY() : grid.getSizeX();
-        Direction dir = isX ? Direction.getClosestDirection(1, 0) : Direction.getClosestDirection(0, 1);
+        Direction dir = isX ? Direction.getDirection(1, 0) : Direction.getDirection(0, 1);
         boolean[] conflicts = new boolean[sizeX - 1];
         int count = 0;
 

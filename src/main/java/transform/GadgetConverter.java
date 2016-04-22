@@ -70,6 +70,7 @@ public class GadgetConverter {
         return grid;
     }
 
+    // TODO fix?
     // Used for the hot fix for the new gadget format. Does not handle when the location is on corner properly.
     private Side getSide(Gadget g, Location loc) {
         for (Direction dir : Direction.values()) {

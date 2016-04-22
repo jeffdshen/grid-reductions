@@ -253,7 +253,7 @@ public class LPGadgetPlacer {
             case WIRE:
                 if (start.equals(end)) {
                     addWireConstraints(lp, start, end, cell.getOutputDirection(0), wirer);
-                } else if (Direction.getClosestDirection(end.subtract(start)) == cell.getOutputDirection(0)) {
+                } else if (Direction.getScalarDirection(end.subtract(start)) == cell.getOutputDirection(0)) {
                     addWireConstraints(lp, start, end, cell.getOutputDirection(0), wirer);
                 } else {
                     addWireConstraints(lp, end, start, cell.getOutputDirection(0), wirer);
@@ -339,7 +339,7 @@ public class LPGadgetPlacer {
         int length = Math.abs(endX + endY - startX - startY) + 1;
         System.out.println(wirer.minLength(d, thick) + ", " + d + ", " + thick + ", " + length + ", " + startX + "," + startY);
         System.out.println(new Side(startX, startY, d.opposite()).opposite());
-        GadgetConfiguration wire = wirer.wire(new Side(startX, startY, d.opposite()).opposite(), length, thick);
+        GadgetConfiguration wire = wirer.wire(new Side(startX, startY, d.opposite()), length, thick);
         Preconditions.checkState(config.canConnect(new Location(0, 0), wire), "\n" + config.toGrid(empty) + "\n" + wire.toGrid(empty));
         config.connect(new Location(0, 0), wire);
     }
@@ -375,7 +375,7 @@ public class LPGadgetPlacer {
             case WIRE:
                 if (start.equals(end)) {
                     placeWire(gadgetConfig, sol, start, end, cell.getOutputDirection(0), wirer);
-                } else if (Direction.getClosestDirection(end.subtract(start)) == cell.getOutputDirection(0)) {
+                } else if (Direction.getScalarDirection(end.subtract(start)) == cell.getOutputDirection(0)) {
                     placeWire(gadgetConfig, sol, start, end, cell.getOutputDirection(0), wirer);
                 } else {
                     placeWire(gadgetConfig, sol, end, start, cell.getOutputDirection(0), wirer);

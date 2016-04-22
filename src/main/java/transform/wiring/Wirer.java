@@ -10,7 +10,9 @@ import types.configuration.GadgetConfiguration;
  */
 public interface Wirer {
     /**
-     * @param length exact length in the direction of the shifter
+     * @param input the desired input for the wire (note: the direction of the side will be
+     *              opposite the direction of the wire).
+     * @param length exact length in the direction of the wirer
      * @param thickness maximum length in the direction orthogonal of the wire on either side of the wire.
      * @return a wiring that satisfies the constraints
      */
