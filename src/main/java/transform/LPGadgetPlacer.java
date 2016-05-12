@@ -1,11 +1,13 @@
 package transform;
 
-import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.*;
-import transform.lp.JOptimizerSolver;
-import transform.lp.LinearProgram;
+import transform.lp.*;
+import transform.placer.LargeNode;
+import transform.placer.LocationID;
 import transform.wiring.FrobeniusWirer;
+import transform.wiring.Shifter;
+import transform.wiring.TurnShifter;
 import transform.wiring.Wirer;
 import types.Direction;
 import types.Gadget;
@@ -19,6 +21,7 @@ import types.configuration.cells.CellType;
 import java.util.*;
 
 import static transform.lp.ConstraintFactory.*;
+import static transform.placer.PlacerUtils.*;
 
 // TODO write a test
 public class LPGadgetPlacer {
@@ -33,6 +36,7 @@ public class LPGadgetPlacer {
     private final Map<String, Gadget> gadgets;
 
     private final Wirer wirer;
+    private final Shifter shifter;
 
     public LPGadgetPlacer(
         Iterable<Gadget> wires,
@@ -46,24 +50,24 @@ public class LPGadgetPlacer {
             throw new Exception("Non-1x1 empty gadgets are not supported yet");
         }
 
-
         this.wires = GadgetUtils.getWireMap(wires);
         this.gadgets = GadgetUtils.getGadgetMap(gadgets);
         this.turns = GadgetUtils.getTurnMap(turns);
         this.crossovers = GadgetUtils.getCrossoverMap(crossovers);
         this.wirer = new FrobeniusWirer(wires);
+        this.shifter = new TurnShifter(turns, wires, wirer);
     }
 
     private void addBasicConstraints(GridConfiguration config, LinearProgram.Builder lp) throws Exception {
         // slices are increasing, slice0 is 0
-        lp.addConstraint(equalTo(ImmutableMap.of(getSlice(0).x, 1), 0));
+        lp.addConstraint(equalTo(getSlice(0).x, 0));
         for (int x = 0; x < config.getSizeX(); x++) {
-            lp.addConstraint(atMost(ImmutableMap.of(getSlice(x).x, 1), ImmutableMap.of(getSlice(x + 1).x, 1)));
+            lp.addConstraint(atMost(getSlice(x).x, getSlice(x + 1).x));
         }
 
-        lp.addConstraint(equalTo(ImmutableMap.of(getSlice(0).y, 1), 0));
+        lp.addConstraint(equalTo(getSlice(0).y, 0));
         for (int y = 0; y < config.getSizeY(); y++) {
-            lp.addConstraint(atMost(ImmutableMap.of(getSlice(y).y, 1), ImmutableMap.of(getSlice(y + 1).y, 1)));
+            lp.addConstraint(atMost(getSlice(y).y, getSlice(y + 1).y));
         }
 
         for (int x = 0; x < config.getSizeX(); x++) {
@@ -88,8 +92,8 @@ public class LPGadgetPlacer {
 
                         LocationID side1 = getSide(side);
                         LocationID side2 = getSide(opp);
-                        lp.addConstraint(equalTo(ImmutableMap.of(side1.x, 1), d.getX(), ImmutableMap.of(side2.x, 1)));
-                        lp.addConstraint(equalTo(ImmutableMap.of(side1.y, 1), d.getY(), ImmutableMap.of(side2.y, 1)));
+                        lp.addConstraint(equalTo(side1.x, d.getX(), side2.x));
+                        lp.addConstraint(equalTo(side1.y, d.getY(), side2.y));
                     }
                 }
             }
@@ -176,29 +180,29 @@ public class LPGadgetPlacer {
         // ports are offset, and have min length, then wire thickness
         switch (d) {
             case NORTH:
-                lp.addConstraint(equalTo(ImmutableMap.of(endID.x, 1), ImmutableMap.of(startID.x, 1)));
-                lp.addConstraint(atMost(ImmutableMap.of(endID.y, 1), minLength, ImmutableMap.of(startID.y, 1)));
+                lp.addConstraint(equalTo(endID.x, startID.x));
+                lp.addConstraint(atMost(endID.y, minLength, startID.y));
 
                 lp.addConstraint(atLeast(ImmutableMap.of(endID.x, 1, getSlice(end.getX()).x, -1), thick));
                 lp.addConstraint(atLeast(ImmutableMap.of(getSlice(end.getX() + 1).x, 1, endID.x, -1), thick + 1));
                 break;
             case SOUTH:
-                lp.addConstraint(equalTo(ImmutableMap.of(startID.x, 1), ImmutableMap.of(endID.x, 1)));
-                lp.addConstraint(atMost(ImmutableMap.of(startID.y, 1), minLength, ImmutableMap.of(endID.y, 1)));
+                lp.addConstraint(equalTo(startID.x, endID.x));
+                lp.addConstraint(atMost(startID.y, minLength, endID.y));
 
                 lp.addConstraint(atLeast(ImmutableMap.of(startID.x, 1, getSlice(start.getX()).x, -1), thick));
                 lp.addConstraint(atLeast(ImmutableMap.of(getSlice(start.getX() + 1).x, 1, startID.x, -1), thick + 1));
                 break;
             case EAST:
-                lp.addConstraint(equalTo(ImmutableMap.of(startID.y, 1), ImmutableMap.of(endID.y, 1)));
-                lp.addConstraint(atMost(ImmutableMap.of(startID.x, 1), minLength, ImmutableMap.of(endID.x, 1)));
+                lp.addConstraint(equalTo(startID.y, endID.y));
+                lp.addConstraint(atMost(startID.x, minLength, endID.x));
 
                 lp.addConstraint(atLeast(ImmutableMap.of(startID.y, 1, getSlice(start.getY()).y, -1), thick));
                 lp.addConstraint(atLeast(ImmutableMap.of(getSlice(start.getY() + 1).y, 1, startID.y, -1), thick + 1));
                 break;
             case WEST:
-                lp.addConstraint(equalTo(ImmutableMap.of(endID.y, 1), ImmutableMap.of(startID.y, 1)));
-                lp.addConstraint(atMost(ImmutableMap.of(endID.x, 1), minLength, ImmutableMap.of(startID.x, 1)));
+                lp.addConstraint(equalTo(endID.y, startID.y));
+                lp.addConstraint(atMost(endID.x, minLength, startID.x));
 
                 lp.addConstraint(atLeast(ImmutableMap.of(endID.y, 1, getSlice(end.getY()).y, -1), thick));
                 lp.addConstraint(atLeast(ImmutableMap.of(getSlice(end.getY() + 1).y, 1, endID.y, -1), thick + 1));
@@ -206,37 +210,45 @@ public class LPGadgetPlacer {
         }
     }
 
-    private void addNodeConstraints(LinearProgram.Builder lp, Location start, Location end, Gadget g) {
-        if (!start.equals(end)) {
-            throw new IllegalArgumentException("Large nodes not yet implemented");
-        }
-
+    private void addSmallNodeConstraints(LinearProgram.Builder lp, Location start, Location end, Gadget g) {
         // ports are correctly offset from gadget offset
         LocationID id = getGadget(start.getX(), start.getY());
         for (int i = 0; i < g.getInputSize(); i++) {
             Side side = g.getInput(i);
             LocationID sideID = getSide(new Side(start, side.getDirection()));
-            lp.addConstraint(equalTo(ImmutableMap.of(id.x, 1), side.getX(), ImmutableMap.of(sideID.x, 1)));
-            lp.addConstraint(equalTo(ImmutableMap.of(id.y, 1), side.getY(), ImmutableMap.of(sideID.y, 1)));
+            lp.addConstraint(equalTo(id.x, side.getX(), sideID.x));
+            lp.addConstraint(equalTo(id.y,  side.getY(), sideID.y));
         }
 
         for (int i = 0; i < g.getOutputSize(); i++) {
             Side side = g.getOutput(i);
             LocationID sideID = getSide(new Side(start, side.getDirection()));
-            lp.addConstraint(equalTo(ImmutableMap.of(id.x, 1), side.getX(), ImmutableMap.of(sideID.x, 1)));
-            lp.addConstraint(equalTo(ImmutableMap.of(id.y, 1), side.getY(), ImmutableMap.of(sideID.y, 1)));
+            lp.addConstraint(equalTo(id.x, side.getX(), sideID.x));
+            lp.addConstraint(equalTo(id.y, side.getY(), sideID.y));
         }
 
 
         // gadgets within slice boundaries.
-        lp.addConstraint(atLeast(ImmutableMap.of(id.x, 1), ImmutableMap.of(getSlice(start.getX()).x, 1)));
-        lp.addConstraint(atLeast(ImmutableMap.of(id.y, 1), ImmutableMap.of(getSlice(start.getY()).y, 1)));
-        lp.addConstraint(
-            atMost(ImmutableMap.of(id.x, 1), g.getSizeX(), ImmutableMap.of(getSlice(end.getX() + 1).x, 1))
-        );
-        lp.addConstraint(
-            atMost(ImmutableMap.of(id.y, 1), g.getSizeY(), ImmutableMap.of(getSlice(end.getY() + 1).y, 1))
-        );
+        lp.addConstraint(atLeast(id.x, getSlice(start.getX()).x));
+        lp.addConstraint(atLeast(id.y, getSlice(start.getY()).y));
+        lp.addConstraint(atMost(id.x, g.getSizeX(), getSlice(end.getX() + 1).x));
+        lp.addConstraint(atMost(id.y, g.getSizeY(), getSlice(end.getY() + 1).y));
+    }
+
+    private void addLargeNodeConstraints(
+        GridConfiguration config, LinearProgram.Builder lp, Location start, Location end, Gadget g
+    ) {
+        LargeNode.addConstraint(wirer, shifter, config, lp, start, end, g);
+    }
+
+    private void addNodeConstraints(
+        GridConfiguration config, LinearProgram.Builder lp, Location start, Location end, Gadget g
+    ) {
+        if (!start.equals(end)) {
+            addLargeNodeConstraints(config, lp, start, end, g);
+        } else {
+            addSmallNodeConstraints(lp, start, end, g);
+        }
     }
 
     private void addConstraints(GridConfiguration config, LinearProgram.Builder lp, Location start, Location end) {
@@ -261,14 +273,14 @@ public class LPGadgetPlacer {
                 break;
             case TURN:
                 List<Direction> dirs = ImmutableList.of(cell.getInputDirection(0), cell.getOutputDirection(0));
-                addNodeConstraints(lp, start, end, turns.get(dirs));
+                addNodeConstraints(config, lp, start, end, turns.get(dirs));
                 break;
             case CROSSOVER:
-                addNodeConstraints(lp, start, end, crossovers.get(ImmutableSet.copyOf(cell.getInputDirections())));
+                addNodeConstraints(config, lp, start, end, crossovers.get(ImmutableSet.copyOf(cell.getInputDirections())));
                 break;
             case NODE:
             case PORT:
-                addNodeConstraints(lp, start, end, gadgets.get(cell.getName()));
+                addNodeConstraints(config, lp, start, end, gadgets.get(cell.getName()));
                 break;
         }
     }
@@ -314,13 +326,6 @@ public class LPGadgetPlacer {
         return lp.build().getSolution(new JOptimizerSolver());
     }
 
-    private int roundAndCheck(double d) {
-        long num = Math.round(d);
-//        Preconditions.checkState(Math.abs(d - num) < 0.1, d);
-        Preconditions.checkState(num < 5000 && num >= 0, "Offset out of bounds");
-        return (int) num;
-    }
-
     private void placeWire(
         GadgetConfiguration config, Map<String, Double> sol, Location start, Location end, Direction d, Wirer wirer
     ) {
@@ -328,8 +333,6 @@ public class LPGadgetPlacer {
         LocationID endID = getSide(new Side(end, d));
 
         Preconditions.checkArgument(wirer.canWire(d), d);
-        System.out.println(startID.x + "," + startID.y);
-        System.out.println(endID.x + "," + endID.y);
         int thick = wirer.minThickness(d) * 2; // TODO replace this with better inequalities
         int startX = roundAndCheck(sol.get(startID.x));
         int startY = roundAndCheck(sol.get(startID.y));
@@ -337,36 +340,40 @@ public class LPGadgetPlacer {
         int endY = roundAndCheck(sol.get(endID.y));
 
         int length = Math.abs(endX + endY - startX - startY) + 1;
-        System.out.println(wirer.minLength(d, thick) + ", " + d + ", " + thick + ", " + length + ", " + startX + "," + startY);
-        System.out.println(new Side(startX, startY, d.opposite()).opposite());
         GadgetConfiguration wire = wirer.wire(new Side(startX, startY, d.opposite()), length, thick);
-        Preconditions.checkState(config.canConnect(new Location(0, 0), wire), "\n" + config.toGrid(empty) + "\n" + wire.toGrid(empty));
+        Preconditions.checkState(config.canConnect(new Location(0, 0), wire),
+            String.format("Could not connect wire from %s to %s", start, end));
         config.connect(new Location(0, 0), wire);
     }
 
     private void placeNode(
-        GadgetConfiguration config, Map<String, Double> sol, Location start, Location end, Gadget g
+        GridConfiguration gridConfig,
+        GadgetConfiguration gadgetConfig,
+        Map<String, Double> sol,
+        Location start,
+        Location end,
+        Gadget g
     ) {
         if (!start.equals(end)) {
-            throw new IllegalArgumentException("Large nodes not yet implemented");
+            LargeNode.place(wirer, shifter, gridConfig, gadgetConfig, sol, start, end, g);
+            return;
         }
 
         // ports are correctly offset from gadget offset
         LocationID id = getGadget(start.getX(), start.getY());
         int x = roundAndCheck(sol.get(id.x));
         int y = roundAndCheck(sol.get(id.y));
-        config.connect(new Location(x, y), g);
+        gadgetConfig.connect(new Location(x, y), g);
     }
 
     private void placeGadget(
-        GridConfiguration gridConfig, GadgetConfiguration gadgetConfig,
-        Map<String, Double> sol, Location start, Location end
+        GridConfiguration gridConfig,
+        GadgetConfiguration gadgetConfig,
+        Map<String, Double> sol,
+        Location start,
+        Location end
     ) {
         Cell cell = gridConfig.getCell(start);
-
-        if (cell.getCellType() != CellType.EMPTY) {
-            System.out.println(cell.getCellType());
-        }
 
         switch (cell.getCellType()) {
             case EMPTY:
@@ -383,15 +390,15 @@ public class LPGadgetPlacer {
                 break;
             case TURN:
                 List<Direction> dirs = ImmutableList.of(cell.getInputDirection(0), cell.getOutputDirection(0));
-                placeNode(gadgetConfig, sol, start, end, turns.get(dirs));
+                placeNode(gridConfig, gadgetConfig, sol, start, end, turns.get(dirs));
                 break;
             case CROSSOVER:
                 Set inputDirs = ImmutableSet.copyOf(cell.getInputDirections());
-                placeNode(gadgetConfig, sol, start, end, crossovers.get(inputDirs));
+                placeNode(gridConfig, gadgetConfig, sol, start, end, crossovers.get(inputDirs));
                 break;
             case NODE:
             case PORT:
-                placeNode(gadgetConfig, sol, start, end, gadgets.get(cell.getName()));
+                placeNode(gridConfig, gadgetConfig, sol, start, end, gadgets.get(cell.getName()));
                 break;
         }
     }
@@ -444,41 +451,8 @@ public class LPGadgetPlacer {
         Map<String, Double> sol = runLP(gridConfig);
         System.out.println(sol.get(getSlice(0).x) + "," + sol.get(getSlice(gridConfig.getSizeX()).x) +
             "," +  sol.get(getSlice(0).y) + "," + sol.get(getSlice(gridConfig.getSizeY()).y));
-        System.out.println(sol);
         print(gridConfig, sol);
 
         return placeGadgets(gridConfig, sol);
-    }
-
-    /**
-     * formats:
-     * side [x] [y] [d]
-     * x [x]
-     * y [y]
-     * gadgetX [x] [y]
-     * gadgetY [x] [y]
-     */
-    private static class LocationID {
-        private final String x;
-        private final String y;
-
-        public LocationID(String s, Object... objects) {
-            this.x = s + "x:" + Joiner.on("-").join(objects);
-            this.y = s + "y:" + Joiner.on("-").join(objects);
-        }
-    }
-
-    private static LocationID getSide(Side side) {
-        Location loc = side.getLocation();
-        Direction dir = side.getDirection();
-        return new LocationID("side", loc.getX(), loc.getY(), dir.ordinal());
-    }
-
-    private static LocationID getSlice(int slice) {
-        return new LocationID("slice", slice);
-    }
-
-    private static LocationID getGadget(int x, int y) {
-        return new LocationID("gadget", x, y);
     }
 }

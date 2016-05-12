@@ -66,6 +66,14 @@ public class Side {
         return subtract(d.getX() * multiple, d.getY() * multiple);
     }
 
+    public Side clockwise() {
+        return new Side(loc, d.clockwise());
+    }
+
+    public Side anticlockwise() {
+        return new Side(loc, d.anticlockwise());
+    }
+
     public int dot(Direction d) {
         return loc.dot(d);
     }

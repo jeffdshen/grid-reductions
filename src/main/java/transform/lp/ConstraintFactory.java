@@ -39,6 +39,25 @@ public class ConstraintFactory {
         return lessThanOrEqualTo(lhs, 0.0, rhs, 0.0);
     }
 
+    /**
+     * For constraints with at most a single variable on each side
+     */
+    public static Constraint atMost(String lhs, Number lhsC, String rhs, Number rhsC) {
+        return atMost(ImmutableMap.of(lhs, 1), lhsC, ImmutableMap.of(rhs, 1), rhsC);
+    }
+
+    public static Constraint atMost(String lhs, Number rhsC) {
+        return atMost(ImmutableMap.of(lhs, 1), rhsC);
+    }
+
+    public static Constraint atMost(String lhs, Number lhsC, String rhs) {
+        return atMost(ImmutableMap.of(lhs, 1), lhsC, ImmutableMap.of(rhs, 1));
+    }
+
+    public static Constraint atMost(String lhs, String rhs) {
+        return atMost(ImmutableMap.of(lhs, 1), ImmutableMap.of(rhs, 1));
+    }
+
     public static Constraint greaterThanOrEqualTo(
         Map<String, ? extends Number> lhs, Number lhsC, Map<String, ? extends Number> rhs, Number rhsC
     ) {
@@ -75,6 +94,29 @@ public class ConstraintFactory {
 
     public static Constraint atLeast(Map<String, ? extends Number> lhs, Number rhsC) {
         return greaterThanOrEqualTo(lhs, rhsC);
+    }
+
+    /**
+     * For constraints with at most a single variable on each side
+     */
+    public static Constraint atLeast(String lhs, Number lhsC, String rhs, Number rhsC) {
+        return atLeast(ImmutableMap.of(lhs, 1), lhsC, ImmutableMap.of(rhs, 1), rhsC);
+    }
+
+    public static Constraint atLeast(String lhs, Number rhsC) {
+        return atLeast(ImmutableMap.of(lhs, 1), rhsC);
+    }
+
+    public static Constraint atLeast(String lhs, Number lhsC, String rhs) {
+        return atLeast(ImmutableMap.of(lhs, 1), lhsC, ImmutableMap.of(rhs, 1));
+    }
+
+    public static Constraint atLeast(String lhs, String rhs) {
+        return atLeast(ImmutableMap.of(lhs, 1), ImmutableMap.of(rhs, 1));
+    }
+
+    public static Constraint atLeast(String lhs, String rhs, Number rhsC) {
+        return atLeast(ImmutableMap.of(lhs, 1), ImmutableMap.of(rhs, 1), rhsC);
     }
 
     /**
@@ -141,5 +183,28 @@ public class ConstraintFactory {
 
     public static Constraint equalTo(Map<String, ? extends Number> lhs, Number rhsC) {
         return equalTo(lhs, 0., ImmutableMap.<String, Number>of(), rhsC);
+    }
+
+    /**
+     * For constraints with at most a single variable on each side
+     */
+    public static Constraint equalTo(String lhs, Number lhsC, String rhs, Number rhsC) {
+        return equalTo(ImmutableMap.of(lhs, 1), lhsC, ImmutableMap.of(rhs, 1), rhsC);
+    }
+
+    public static Constraint equalTo(String lhs, Number rhsC) {
+        return equalTo(ImmutableMap.of(lhs, 1), rhsC);
+    }
+
+    public static Constraint equalTo(String lhs, Number lhsC, String rhs) {
+        return equalTo(ImmutableMap.of(lhs, 1), lhsC, ImmutableMap.of(rhs, 1));
+    }
+
+    public static Constraint equalTo(String lhs, String rhs) {
+        return equalTo(ImmutableMap.of(lhs, 1), ImmutableMap.of(rhs, 1));
+    }
+
+    public static Constraint equalTo(String lhs, String rhs, Number rhsC) {
+        return equalTo(ImmutableMap.of(lhs, 1), ImmutableMap.of(rhs, 1), rhsC);
     }
 }

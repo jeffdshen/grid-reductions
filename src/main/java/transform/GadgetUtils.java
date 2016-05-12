@@ -11,23 +11,20 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FilenameFilter;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class GadgetUtils {
     public static final Function<Gadget, Integer> WIRE_LENGTH = new Function<Gadget, Integer>() {
         @Override
         public Integer apply(Gadget input) {
-            return input.getInput(0).getDirection().parallel(Direction.NORTH) ? input.getSizeY() : input.getSizeX();
+            return input.getInput(0).getDirection().isY() ? input.getSizeY() : input.getSizeX();
         }
     };
 
     public static final Function<Gadget, Integer> WIRE_WIDTH = new Function<Gadget, Integer>() {
         @Override
         public Integer apply(Gadget input) {
-            return input.getInput(0).getDirection().parallel(Direction.NORTH) ? input.getSizeX() : input.getSizeY();
+            return input.getInput(0).getDirection().isY() ? input.getSizeX() : input.getSizeY();
         }
     };
 
@@ -36,7 +33,7 @@ public class GadgetUtils {
         public Integer apply(Gadget input) {
             Location loc = input.getInput(0).getLocation();
 
-            if (input.getInput(0).getDirection().parallel(Direction.NORTH)) {
+            if (input.getInput(0).getDirection().isY()) {
                 return Math.max(loc.getX(), input.getSizeX() - 1 - loc.getX());
             }
 
@@ -227,6 +224,21 @@ public class GadgetUtils {
         }
 
         return builder.build();
+    }
+
+    // TODO make immutable
+    public static Map<Direction, List<Side>> getPorts(Gadget g, Side start, Location end) {
+        HashMap<Direction, List<Side>> gadgetSides = new HashMap<>();
+        for (Direction d : Direction.values()) {
+            gadgetSides.put(d, new ArrayList<Side>());
+        }
+
+        for (Side s : GridUtils.getBoundary(start, end)) {
+            if (g.isInput(s) || g.isOutput(s)) {
+                gadgetSides.get(s.getDirection()).add(s);
+            }
+        }
+        return gadgetSides;
     }
 
     /**

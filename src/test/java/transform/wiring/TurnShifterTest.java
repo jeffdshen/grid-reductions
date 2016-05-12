@@ -2,8 +2,6 @@ package transform.wiring;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.io.PatternFilenameFilter;
-import org.testng.Assert;
 import org.testng.annotations.Test;
 import transform.GadgetUtils;
 import types.Direction;
@@ -14,10 +12,12 @@ import types.configuration.GadgetConfiguration;
 import utils.ResourceUtils;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.List;
 
-import static types.Direction.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+import static types.Direction.EAST;
+import static types.Direction.WEST;
 
 public class TurnShifterTest {
     // tests to include: frobenius wirer length 0.
@@ -30,7 +30,7 @@ public class TurnShifterTest {
         File wireDir = ResourceUtils.getAbsoluteFile(getClass(), "transform/wiring/gadgets/wires/");
         Iterable<Gadget> wires = GadgetUtils.getGadgets(wireDir);
         TurnShifter shifter = new TurnShifter(turns, wires, new FrobeniusWirer(wires));
-        Assert.assertEquals(shifter.minSeparation(Direction.WEST), 2);
+        assertEquals(shifter.minSeparation(Direction.WEST), 2);
 
         int thickness = shifter.minThickness(Direction.EAST, 2);
         int length = shifter.minLength(Direction.EAST, 2, thickness);
@@ -39,11 +39,11 @@ public class TurnShifterTest {
                 new Side(length - 1, thickness, EAST), new Side(length - 1, thickness + 3, EAST)
         );
         GadgetConfiguration shift = shifter.shift(inputs, outputs, 18, 6);
-        Assert.assertEquals(shift.getInputs(), ImmutableSet.copyOf(inputs));
-        Assert.assertEquals(shift.getOutputs(), ImmutableSet.copyOf(outputs));
+        assertEquals(shift.getInputs(), ImmutableSet.copyOf(inputs));
+        assertEquals(shift.getOutputs(), ImmutableSet.copyOf(outputs));
         Grid<String> grid = shift.toGrid(".");
-        Assert.assertTrue(grid.getSizeY() <= thickness + 3 + thickness);
-        Assert.assertTrue(grid.getSizeX() == length);
-        System.out.println(grid);
+        assertTrue(grid.getSizeY() <= thickness + 3 + thickness);
+        assertTrue(grid.getSizeX() == length);
+//        System.out.println(grid);
     }
 }

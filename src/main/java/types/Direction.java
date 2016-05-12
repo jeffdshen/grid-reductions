@@ -123,11 +123,23 @@ public enum Direction {
         return !perpendicular(d);
     }
 
+    public boolean isX() {
+        return parallel(getDirection(1, 0));
+    }
+
+    public boolean isY() {
+        return parallel(getDirection(0, 1));
+    }
+
     public boolean isPositive() {
         return x > 0 || y > 0;
     }
 
     public boolean isNegative() {
         return x < 0 || y < 0;
+    }
+
+    public int dot(Direction d) {
+        return x * d.getX() + y * d.getY();
     }
 }
