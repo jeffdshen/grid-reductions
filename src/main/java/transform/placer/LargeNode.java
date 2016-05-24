@@ -1,6 +1,8 @@
 package transform.placer;
 
+import com.google.common.base.Function;
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Ordering;
 import transform.GadgetUtils;
 import transform.GridUtils;
@@ -14,6 +16,7 @@ import types.Side;
 import types.configuration.GadgetConfiguration;
 import types.configuration.GridConfiguration;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +50,25 @@ public class LargeNode {
         new LargeNodePlacer(wirer, shifter, gridConfig, config, sol, start, end, g).place();
     }
 
+    public static List<Boolean> getIsInput(final Gadget g, final Direction d, List<Side> sides) {
+        return Lists.transform(sides, new Function<Side, Boolean>() {
+            @Nullable
+            @Override
+            public Boolean apply(@Nullable Side s) {
+                return g.isInput(s);
+            }
+        });
+    }
+
+    public static List<Boolean> getIsOutput(final Gadget g, final Direction d, List<Side> sides) {
+        return Lists.transform(sides, new Function<Side, Boolean>() {
+            @Nullable
+            @Override
+            public Boolean apply(@Nullable Side s) {
+                return g.isOutput(s);
+            }
+        });
+    }
 
     private static class LargeNodePlacer {
         private final Wirer wirer;
@@ -124,9 +146,8 @@ public class LargeNode {
                     config.connect(new Location(0, 0), wire);
                 }
 
-                List<Side> input = out ? inner : outer;
-                List<Side> output = out ? outer : inner;
-                GadgetConfiguration shift = shifter.shift(input, output, length, thickness);
+                List<Boolean> isInput = getIsOutput(g, d, gadgetPorts.get(d));
+                GadgetConfiguration shift = shifter.shift(inner, outer, isInput, thickness);
 
                 Preconditions.checkState(
                     config.canConnect(new Location(0, 0), shift),
@@ -138,15 +159,11 @@ public class LargeNode {
         }
 
         private int getShifterThickness(Direction d) {
-            Direction dShifter = g.isOutput(gadgetPorts.get(d).get(0)) ? d : d.opposite();
-            int dPorts = gadgetPorts.get(d).size();
-            return shifter.minThickness(dShifter, dPorts);
+            return shifter.minThickness(d, getIsOutput(g, d, gadgetPorts.get(d)));
         }
 
         private int getShifterLength(Direction d, int thickness) {
-            Direction dShifter = g.isOutput(gadgetPorts.get(d).get(0)) ? d : d.opposite();
-            int dPorts = gadgetPorts.get(d).size();
-            return shifter.minLength(dShifter, dPorts, thickness);
+            return shifter.minLength(d, getIsOutput(g, d, gadgetPorts.get(d)), thickness);
         }
     }
 
@@ -233,22 +250,16 @@ public class LargeNode {
 
         private void addMinSeparation(Direction d) {
             // min separation between outer wires
-            // TODO mixed inputs/outputs shifter
             if (gadgetPorts.get(d).size() <= 0) {
                 return;
             }
 
-            Side first = gadgetPorts.get(d).get(0);
-            for (Side s : gadgetPorts.get(d)) {
-                Preconditions.checkState(
-                    g.isInput(s) == g.isInput(first), "Mixed inputs/outputs not supported yet"
-                );
-            }
+            List<Integer> minSepOut = shifter.minSeparation(d, false, getIsInput(g, d, gadgetPorts.get(d)));
 
-            int minSeparation = shifter.minSeparation(g.isOutput(first) ? d : d.opposite());
             List<Side> portList = gridPorts.get(d);
             for (int i = 0; i < portList.size() - 1; i++) {
-                lp.addConstraint(lengthAtLeast(portList.get(i), portList.get(i + 1), d.clockwise(), minSeparation + 1));
+                int sep = minSepOut.get(i);
+                lp.addConstraint(lengthAtLeast(portList.get(i), portList.get(i + 1), d.clockwise(), sep + 1));
             }
         }
 
@@ -278,15 +289,11 @@ public class LargeNode {
         }
 
         private int getShifterThickness(Direction d) {
-            Direction dShifter = g.isOutput(gadgetPorts.get(d).get(0)) ? d : d.opposite();
-            int dPorts = gadgetPorts.get(d).size();
-            return shifter.minThickness(dShifter, dPorts);
+            return shifter.minThickness(d, getIsOutput(g, d, gadgetPorts.get(d)));
         }
 
         private int getShifterLength(Direction d, int thickness) {
-            Direction dShifter = g.isOutput(gadgetPorts.get(d).get(0)) ? d : d.opposite();
-            int dPorts = gadgetPorts.get(d).size();
-            return shifter.minLength(dShifter, dPorts, thickness);
+            return shifter.minLength(d, getIsOutput(g, d, gadgetPorts.get(d)), thickness);
         }
 
         private int getOffsetLength(Direction d) {
