@@ -9,6 +9,8 @@ import parser.ConfigurationParser;
 import parser.GadgetParser;
 import parser.SATParser;
 import postprocessor.ImagePostProcessor;
+import postprocessor.PostProcessor;
+import postprocessor.PostProcessorUtils;
 import transform.ConfigurationResolver;
 import transform.GadgetUtils;
 import transform.GridUtils;
@@ -58,8 +60,20 @@ public class Main {
             out.print(output);
         }
 
-        String[][] array = GridUtils.toStringArray(output);
-        visualizeAkari1600(array);
+        ImagePostProcessor ipp = new ImagePostProcessor(getAkariImages(), 10, 10);
+        BufferedImage image = ipp.process(output);
+        File imageOutput = ResourceUtils.getAbsoluteFile(getClass(), "akari.png");
+        PostProcessorUtils.showImage(image);
+        ipp.write(image, imageOutput);
+    }
+
+    public Map<String, BufferedImage> getAkariImages() throws IOException {
+        BufferedImage zero = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/zero10.png"));
+        BufferedImage one = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/one10.png"));
+        BufferedImage two = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/two10.png"));
+        BufferedImage blank = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/blank10.png"));
+        BufferedImage black = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/black10.png"));
+        return ImmutableMap.of("0", zero, "1", one, "2", two, "x", black, ".", blank);
     }
 
     public List<Gadget> getWires(Iterable<File> wires) throws IOException {
@@ -170,18 +184,6 @@ public class Main {
             }
         }
         return cropped;
-    }
-
-    public void visualizeAkari1600(String[][] grid) throws IOException {
-        BufferedImage zero = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/zero10.png"));
-        BufferedImage one = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/one10.png"));
-        BufferedImage two = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/two10.png"));
-        BufferedImage blank = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/blank10.png"));
-        BufferedImage black = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/black10.png"));
-        Map<String, BufferedImage> l = ImmutableMap.of("0", zero, "1", one, "2", two, "x", black, ".", blank);
-
-        new ImagePostProcessor(l, 10, 10, ResourceUtils.getAbsoluteFile(getClass(), "0-1600x0-1600.png"))
-            .process(crop(grid, 0, 0, 1600, 1600));
     }
 
     public void visualizeAkari(String[][] grid) throws IOException {

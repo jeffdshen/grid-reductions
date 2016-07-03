@@ -13,8 +13,8 @@ import types.Direction;
 import types.Gadget;
 import types.Location;
 import types.Side;
+import types.configuration.CellConfiguration;
 import types.configuration.GadgetConfiguration;
-import types.configuration.GridConfiguration;
 import types.configuration.cells.Cell;
 import types.configuration.cells.CellType;
 
@@ -58,7 +58,7 @@ public class LPGadgetPlacer {
         this.shifter = new TurnShifter(turns, wires, wirer);
     }
 
-    private void addBasicConstraints(GridConfiguration config, LinearProgram.Builder lp) throws Exception {
+    private void addBasicConstraints(CellConfiguration config, LinearProgram.Builder lp) throws Exception {
         // slices are increasing, slice0 is 0
         lp.addConstraint(equalTo(getSlice(0).x, 0));
         for (int x = 0; x < config.getSizeX(); x++) {
@@ -100,7 +100,7 @@ public class LPGadgetPlacer {
         }
     }
 
-    private Location findEndpoint(GridConfiguration config, Location loc, HashSet<Location> seen) {
+    private Location findEndpoint(CellConfiguration config, Location loc, HashSet<Location> seen) {
         Cell cell = config.getCell(loc);
         switch (cell.getCellType()) {
             case EMPTY:
@@ -236,13 +236,13 @@ public class LPGadgetPlacer {
     }
 
     private void addLargeNodeConstraints(
-        GridConfiguration config, LinearProgram.Builder lp, Location start, Location end, Gadget g
+        CellConfiguration config, LinearProgram.Builder lp, Location start, Location end, Gadget g
     ) {
         LargeNode.addConstraint(wirer, shifter, config, lp, start, end, g);
     }
 
     private void addNodeConstraints(
-        GridConfiguration config, LinearProgram.Builder lp, Location start, Location end, Gadget g
+        CellConfiguration config, LinearProgram.Builder lp, Location start, Location end, Gadget g
     ) {
         if (!start.equals(end)) {
             addLargeNodeConstraints(config, lp, start, end, g);
@@ -251,7 +251,7 @@ public class LPGadgetPlacer {
         }
     }
 
-    private void addConstraints(GridConfiguration config, LinearProgram.Builder lp, Location start, Location end) {
+    private void addConstraints(CellConfiguration config, LinearProgram.Builder lp, Location start, Location end) {
         Cell cell = config.getCell(start);
 
         if (cell.getCellType() != CellType.EMPTY) {
@@ -285,7 +285,7 @@ public class LPGadgetPlacer {
         }
     }
 
-    private Map<String, Double> runLP(GridConfiguration config) throws Exception {
+    private Map<String, Double> runLP(CellConfiguration config) throws Exception {
         LinearProgram.Builder lp = LinearProgram.builder();
 
         ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
@@ -347,7 +347,7 @@ public class LPGadgetPlacer {
     }
 
     private void placeNode(
-        GridConfiguration gridConfig,
+        CellConfiguration cellConfig,
         GadgetConfiguration gadgetConfig,
         Map<String, Double> sol,
         Location start,
@@ -355,7 +355,7 @@ public class LPGadgetPlacer {
         Gadget g
     ) {
         if (!start.equals(end)) {
-            LargeNode.place(wirer, shifter, gridConfig, gadgetConfig, sol, start, end, g);
+            LargeNode.place(wirer, shifter, cellConfig, gadgetConfig, sol, start, end, g);
             return;
         }
 
@@ -367,13 +367,13 @@ public class LPGadgetPlacer {
     }
 
     private void placeGadget(
-        GridConfiguration gridConfig,
+        CellConfiguration cellConfig,
         GadgetConfiguration gadgetConfig,
         Map<String, Double> sol,
         Location start,
         Location end
     ) {
-        Cell cell = gridConfig.getCell(start);
+        Cell cell = cellConfig.getCell(start);
 
         switch (cell.getCellType()) {
             case EMPTY:
@@ -390,41 +390,41 @@ public class LPGadgetPlacer {
                 break;
             case TURN:
                 List<Direction> dirs = ImmutableList.of(cell.getInputDirection(0), cell.getOutputDirection(0));
-                placeNode(gridConfig, gadgetConfig, sol, start, end, turns.get(dirs));
+                placeNode(cellConfig, gadgetConfig, sol, start, end, turns.get(dirs));
                 break;
             case CROSSOVER:
                 Set inputDirs = ImmutableSet.copyOf(cell.getInputDirections());
-                placeNode(gridConfig, gadgetConfig, sol, start, end, crossovers.get(inputDirs));
+                placeNode(cellConfig, gadgetConfig, sol, start, end, crossovers.get(inputDirs));
                 break;
             case NODE:
             case PORT:
-                placeNode(gridConfig, gadgetConfig, sol, start, end, gadgets.get(cell.getName()));
+                placeNode(cellConfig, gadgetConfig, sol, start, end, gadgets.get(cell.getName()));
                 break;
         }
     }
 
-    private GadgetConfiguration placeGadgets(GridConfiguration gridConfig, Map<String, Double> sol) throws Exception {
+    private GadgetConfiguration placeGadgets(CellConfiguration cellConfig, Map<String, Double> sol) throws Exception {
         GadgetConfiguration gadgetConfig = new GadgetConfiguration();
 
         // ports match gadget offsets, and gadget boundaries match up to the slices
         HashSet<Location> seen = new HashSet<>();
-        for (int x = 0; x < gridConfig.getSizeX(); x++) {
-            for (int y = 0; y < gridConfig.getSizeY(); y++) {
+        for (int x = 0; x < cellConfig.getSizeX(); x++) {
+            for (int y = 0; y < cellConfig.getSizeY(); y++) {
                 Location loc = new Location(x, y);
                 if (seen.contains(loc)) {
                     continue;
                 }
 
                 seen.add(loc);
-                Location end = findEndpoint(gridConfig, loc, seen);
-                placeGadget(gridConfig, gadgetConfig, sol, loc, end);
+                Location end = findEndpoint(cellConfig, loc, seen);
+                placeGadget(cellConfig, gadgetConfig, sol, loc, end);
             }
         }
 
         return gadgetConfig;
     }
 
-    private void print(GridConfiguration config, Map<String, Double> sol) {
+    private void print(CellConfiguration config, Map<String, Double> sol) {
         List<Map.Entry<String, Double>> entries = ImmutableList.copyOf(sol.entrySet());
 
         entries = Ordering.from(new Comparator<Map.Entry<String, Double>>() {
@@ -447,12 +447,12 @@ public class LPGadgetPlacer {
         }
     }
 
-    public GadgetConfiguration place(GridConfiguration gridConfig) throws Exception {
-        Map<String, Double> sol = runLP(gridConfig);
-        System.out.println(sol.get(getSlice(0).x) + "," + sol.get(getSlice(gridConfig.getSizeX()).x) +
-            "," +  sol.get(getSlice(0).y) + "," + sol.get(getSlice(gridConfig.getSizeY()).y));
-        print(gridConfig, sol);
+    public GadgetConfiguration place(CellConfiguration cellConfig) throws Exception {
+        Map<String, Double> sol = runLP(cellConfig);
+        System.out.println(sol.get(getSlice(0).x) + "," + sol.get(getSlice(cellConfig.getSizeX()).x) +
+            "," +  sol.get(getSlice(0).y) + "," + sol.get(getSlice(cellConfig.getSizeY()).y));
+        print(cellConfig, sol);
 
-        return placeGadgets(gridConfig, sol);
+        return placeGadgets(cellConfig, sol);
     }
 }

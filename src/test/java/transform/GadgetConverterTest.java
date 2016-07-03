@@ -5,7 +5,7 @@ import org.testng.annotations.Test;
 import parser.GadgetParser;
 import types.Direction;
 import types.Gadget;
-import types.configuration.GridConfiguration;
+import types.configuration.CellConfiguration;
 import types.configuration.cells.Cell;
 import types.configuration.cells.CellType;
 import utils.ResourceUtils;
@@ -19,7 +19,7 @@ public class GadgetConverterTest {
         GadgetParser parser = new GadgetParser();
         Gadget gadget = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), "types/gadget/circuit/and.txt"));
         GadgetConverter converter = new GadgetConverter();
-        GridConfiguration grid = converter.toGridConfiguration(gadget, ImmutableList.of(1, 2, 3));
+        CellConfiguration grid = converter.toGridConfiguration(gadget, ImmutableList.of(1, 2, 3));
 
         assertEquals(grid.getSizeX(), 1);
         assertEquals(grid.getSizeY(), 2);

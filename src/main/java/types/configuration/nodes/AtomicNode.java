@@ -4,6 +4,9 @@ import com.google.common.collect.ImmutableList;
 
 import java.util.List;
 
+/**
+ * An node holding an "atom," or a component that is not represented by any sub-configuration.
+ */
 public class AtomicNode {
     private final ImmutableList<Integer> id;
     private final ImmutableList<Integer> context;

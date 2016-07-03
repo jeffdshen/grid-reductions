@@ -1,7 +1,9 @@
 package types.configuration;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.*;
 import types.*;
+import types.configuration.nodes.Port;
 
 import java.util.*;
 
@@ -12,6 +14,7 @@ public class GadgetConfiguration {
     private final Map<Location, Integer> occupied;
     private final Map<Integer, Location> offsets;
     private final Map<Integer, Gadget> gadgets;
+    private final BiMap<Integer, List<Integer>> configIDs;
     private final Set<Side> inputs;
     private final Set<Side> outputs;
     private int maxId;
@@ -23,7 +26,24 @@ public class GadgetConfiguration {
         offsets = new HashMap<>();
         gadgets = new HashMap<>();
         maxId = 0;
+        configIDs = HashBiMap.create();
     }
+
+    public int getGadgetID(List<Integer> configID) {
+        return configIDs.inverse().get(configID);
+    }
+
+    /**
+     * Tags a given gadget with a configuration-style id (i.e. see AtomicConfiguration).
+     * @param gadgetID the given gadget's id
+     * @param configID the configuration-style id
+     */
+    public void tagGadget(int gadgetID, List<Integer> configID) {
+        // TODO incorporate this into LP gadget placer.
+        Preconditions.checkArgument(gadgets.containsKey(gadgetID), "no gadget with the given id");
+        configIDs.put(gadgetID, configID);
+    }
+
 
     /**
      * Places and connects a configuration via the given gadget's output port
@@ -54,7 +74,12 @@ public class GadgetConfiguration {
         for (int i : configuration.gadgets.keySet()) {
             Location loc = configuration.offsets.get(i);
             Gadget gadget = configuration.gadgets.get(i);
-            builder.put(i, connect(loc.add(offset), gadget));
+            int id = connect(loc.add(offset), gadget);
+            builder.put(i, id);
+
+            if (configuration.configIDs.containsKey(i)) {
+                tagGadget(id, configuration.configIDs.get(i));
+            }
         }
         return builder.build();
     }

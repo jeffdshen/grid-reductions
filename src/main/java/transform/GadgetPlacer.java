@@ -7,7 +7,7 @@ import types.Direction;
 import types.Gadget;
 import types.Location;
 import types.Side;
-import types.configuration.GridConfiguration;
+import types.configuration.CellConfiguration;
 import types.configuration.cells.Cell;
 import types.configuration.cells.CellType;
 import types.configuration.placement.GadgetGroup;
@@ -22,7 +22,7 @@ import java.util.Map;
 /**
  * Created by kevin on 12/5/14.
  * Takes in list of Gadgets
- * Transforms GridConfiguration into a 2-d array of strings representing the actual cells
+ * Transforms CellConfiguration into a 2-d array of strings representing the actual cells
  */
 public class GadgetPlacer {
 
@@ -138,15 +138,15 @@ public class GadgetPlacer {
 
     }
 
-    public String[][] place(GridConfiguration gridConfig) throws Exception {
-        int sizeX = gridConfig.getSizeX();
-        int sizeY = gridConfig.getSizeY();
+    public String[][] place(CellConfiguration cellConfig) throws Exception {
+        int sizeX = cellConfig.getSizeX();
+        int sizeY = cellConfig.getSizeY();
         OutputGrid output = new OutputGrid(sizeX, sizeY, cellSize, empty);
         boolean[][] visited = new boolean[sizeX][sizeY];
         for(int i = 0; i < sizeX; i++){
             for(int j = 0; j < sizeY; j++){
                 if(!visited[i][j]){
-                    Cell curCell = gridConfig.getCell(i,j);
+                    Cell curCell = cellConfig.getCell(i,j);
                     switch(curCell.getCellType()){
                         case EMPTY:
                             visited[i][j] = true;
@@ -169,7 +169,7 @@ public class GadgetPlacer {
                             int x = 1;
                             int y = 1;
                             while(((i + x) <  sizeX)){
-                                Cell temp = gridConfig.getCell(i+x,j);
+                                Cell temp = cellConfig.getCell(i+x,j);
                                 if(temp.getCellType() == CellType.NODE || temp.getCellType() == CellType.PORT) {
                                     x++;
                                 }
@@ -178,7 +178,7 @@ public class GadgetPlacer {
                                 }
                             }
                             while(((j + y) <  sizeY)){
-                                Cell temp = gridConfig.getCell(i,j+y);
+                                Cell temp = cellConfig.getCell(i,j+y);
                                 if(temp.getCellType() == CellType.NODE || temp.getCellType() == CellType.PORT) {
                                     y++;
                                 }
@@ -189,7 +189,7 @@ public class GadgetPlacer {
                             Cell[][] gadgetCells = new Cell[x][y];
                             for(int ii = 0; ii < x; ii++){
                                 for(int jj = 0; jj< y; jj++){
-                                    gadgetCells[ii][jj] = gridConfig.getCell(i+ii,j + jj);
+                                    gadgetCells[ii][jj] = cellConfig.getCell(i+ii,j + jj);
                                     visited[i+ii][j+jj] = true;
                                 }
                             }

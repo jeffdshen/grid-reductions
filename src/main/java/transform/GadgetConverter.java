@@ -4,7 +4,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
 import types.*;
-import types.configuration.GridConfiguration;
+import types.configuration.CellConfiguration;
 import types.configuration.cells.Cell;
 import types.configuration.cells.NodeCell;
 import types.configuration.cells.PortCell;
@@ -12,7 +12,7 @@ import types.configuration.cells.PortCell;
 import java.util.List;
 
 public class GadgetConverter {
-    public GridConfiguration toGridConfiguration(Gadget g, List<Integer> id) {
+    public CellConfiguration toGridConfiguration(Gadget g, List<Integer> id) {
         int sizeX = 1;
         int sizeY = 1;
         for (Direction d : Direction.values()) {
@@ -27,7 +27,7 @@ public class GadgetConverter {
             sizeY = Math.max(sizeY, count * Math.abs(step.getY()));
         }
 
-        GridConfiguration grid = new GridConfiguration(new NodeCell(g.getName(), id), sizeX, sizeY);
+        CellConfiguration grid = new CellConfiguration(new NodeCell(g.getName(), id), sizeX, sizeY);
         for (Direction d : Direction.values()) {
             Direction step = d.clockwise();
             Location gadgetLoc = getStart(g, d, step);

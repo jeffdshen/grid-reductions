@@ -1,14 +1,11 @@
 package transform;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Maps;
 import types.Direction;
 import types.Grid;
 import types.Location;
 import types.Side;
-import types.configuration.GridConfiguration;
+import types.configuration.CellConfiguration;
 import types.configuration.cells.Cell;
 
 import java.util.*;
@@ -104,7 +101,7 @@ public class GridUtils {
     }
 
     // TODO make immutable
-    public static Map<Direction, List<Side>> getPorts(GridConfiguration config, Side start, Location end) {
+    public static Map<Direction, List<Side>> getPorts(CellConfiguration config, Side start, Location end) {
         HashMap<Direction, List<Side>> gridPorts = new HashMap<>();
         for (Direction d : Direction.values()) {
             gridPorts.put(d, new ArrayList<Side>());

@@ -1,7 +1,7 @@
 package transform.planar;
 
 import types.Direction;
-import types.configuration.GridConfiguration;
+import types.configuration.CellConfiguration;
 import types.configuration.cells.Cell;
 
 public class GridExpander {
@@ -15,12 +15,12 @@ public class GridExpander {
     /**
      * Last step of expansion, only call after everything else is done.
      */
-    public void expandLast(GridConfiguration grid) {
+    public void expandLast(CellConfiguration grid) {
         expandX(wire, grid, true);
         expandX(wire, grid, false);
     }
 
-    public void expand(GridConfiguration grid) {
+    public void expand(CellConfiguration grid) {
         expandX(area, grid, true);
         expandX(area, grid, false);
     }
@@ -30,7 +30,7 @@ public class GridExpander {
      * @param grid the grid
      * @param isX is expanding the x direction
      */
-    private void expandX(CellExpander ex, GridConfiguration grid, boolean isX) {
+    private void expandX(CellExpander ex, CellConfiguration grid, boolean isX) {
         // flip meaning of x and y if not isX
         int sizeX = isX ? grid.getSizeX() : grid.getSizeY();
         int sizeY = isX ? grid.getSizeY() : grid.getSizeX();

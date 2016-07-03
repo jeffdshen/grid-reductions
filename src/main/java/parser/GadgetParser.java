@@ -85,7 +85,6 @@ public class GadgetParser {
         return new GadgetParserInstance(reader, gadgetId).parseGadget();
     }
 
-
     private static class GadgetParserInstance {
         private final Reader reader;
         private final String gadgetId;

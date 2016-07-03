@@ -6,7 +6,7 @@ import parser.GadgetParser;
 import types.Direction;
 import types.Gadget;
 import types.Location;
-import types.configuration.GridConfiguration;
+import types.configuration.CellConfiguration;
 import types.configuration.cells.*;
 import utils.ResourceUtils;
 
@@ -44,7 +44,7 @@ public class GadgetPlacerTest {
         GadgetPlacer shortPlacer = new GadgetPlacer(shortWires, turn, crossover, empty, baseGadgets);
         //MAKE SOME GRID CONFIGS
 
-        GridConfiguration wireGrid = new GridConfiguration(1,1);
+        CellConfiguration wireGrid = new CellConfiguration(1,1);
         wireGrid.put(WireCell.getWire(Direction.NORTH),new Location(0,0));
 
         //test shortPlacement of wires
@@ -78,7 +78,7 @@ public class GadgetPlacerTest {
 //        System.out.println("FAT CROSS:");
 //        System.out.println(getStringArray(fatPlacer.place(wireGrid)));
 
-        GridConfiguration biggerGrid = new GridConfiguration(2,3);
+        CellConfiguration biggerGrid = new CellConfiguration(2,3);
         Set<Direction> inputDirs = new HashSet<>();
         inputDirs.add(Direction.WEST);
         Set<Direction> outputDirs = new HashSet<>();

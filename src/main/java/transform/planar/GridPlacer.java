@@ -10,7 +10,7 @@ import types.Direction;
 import types.Gadget;
 import types.Location;
 import types.configuration.AtomicConfiguration;
-import types.configuration.GridConfiguration;
+import types.configuration.CellConfiguration;
 import types.configuration.cells.*;
 import types.configuration.nodes.AtomicNode;
 import types.configuration.nodes.AtomicPort;
@@ -22,7 +22,7 @@ import java.util.*;
 public class GridPlacer {
     private static final int INITIAL_SIZE = 10;
 
-    private GridConfiguration grid;
+    private CellConfiguration grid;
     private AtomicConfiguration config;
     private final ImmutableMap<String, Gadget> gadgets;
     private final GridExpander expander;
@@ -31,12 +31,12 @@ public class GridPlacer {
     public GridPlacer(AtomicConfiguration config, Map<String, Gadget> gadgets) {
         this.config = config;
         this.gadgets = ImmutableMap.copyOf(gadgets);
-        this.grid = new GridConfiguration(INITIAL_SIZE, INITIAL_SIZE);
+        this.grid = new CellConfiguration(INITIAL_SIZE, INITIAL_SIZE);
         this.expander = new GridExpander();
         this.converter = new GadgetConverter();
     }
 
-    public GridConfiguration getGrid() {
+    public CellConfiguration getGrid() {
         return this.grid;
     }
 
@@ -44,7 +44,7 @@ public class GridPlacer {
         Iterable<AtomicNode> nodes = config.getNodes();
         // assume nodes are in topological order
         for (AtomicNode node : nodes) {
-            GridConfiguration nodeGrid = converter.toGridConfiguration(gadgets.get(node.getName()), node.getId());
+            CellConfiguration nodeGrid = converter.toGridConfiguration(gadgets.get(node.getName()), node.getId());
             Location loc = getPlace(nodeGrid);
             if (loc == null) {
                 grid.resize(grid.getSizeX() + nodeGrid.getSizeX() + 2, grid.getSizeY() + nodeGrid.getSizeY() + 2);
@@ -61,10 +61,10 @@ public class GridPlacer {
         for (int i = 0; i < node.inputSize(); i++) {
             AtomicPort port = node.getInputPort(i);
             SearchVertex end = find(port);
-            SearchVertex start = find(config.getPort(port));
+            SearchVertex start = find(config.getConnectingPort(port));
 
             if (start == null || end == null) {
-                port = config.getPort(port);
+                port = config.getConnectingPort(port);
                 String nodeName = config.getNode(port.getContext(), port.getPort().getId()).getName();
 
                 throw new IllegalArgumentException(
@@ -118,7 +118,7 @@ public class GridPlacer {
         return null;
     }
 
-    private Location getPlace(GridConfiguration node) {
+    private Location getPlace(CellConfiguration node) {
         // leave space for wires
         int x = node.getSizeX() + 2;
         int y = node.getSizeY() + 2;

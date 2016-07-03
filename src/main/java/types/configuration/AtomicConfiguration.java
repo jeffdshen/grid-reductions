@@ -8,6 +8,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.Stack;
 
+/**
+ * A configuration broken down into "atoms," or components that are not represented by a sub-configuration.
+ */
 public class AtomicConfiguration {
     private ImmutableMap<String, Configuration> subs;
     private Configuration config;
@@ -36,6 +39,10 @@ public class AtomicConfiguration {
         return new AtomicNode(context, cur.getNode(id));
     }
 
+    /**
+     * Returns an iterable of atomic nodes, in topological order.
+     * @return an iterable of atomic nodes.
+     */
     public Iterable<AtomicNode> getNodes() {
         return new Iterable<AtomicNode>() {
             @Override
@@ -45,7 +52,12 @@ public class AtomicConfiguration {
         };
     }
 
-    public AtomicPort getPort(AtomicPort port) {
+    /**
+     * Gets the connecting port to this one
+     * @param port the given port
+     * @return A port connected to the given one.
+     */
+    public AtomicPort getConnectingPort(AtomicPort port) {
         // go down
         Stack<Configuration> configStack = new Stack<>();
         configStack.push(config);

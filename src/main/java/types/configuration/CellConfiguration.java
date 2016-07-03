@@ -5,12 +5,12 @@ import types.MutableGrid;
 import types.configuration.cells.Cell;
 import types.configuration.cells.EmptyCell;
 
-public class GridConfiguration extends MutableGrid<Cell> {
-    public GridConfiguration(int initialSizeX, int initialSizeY) {
+public class CellConfiguration extends MutableGrid<Cell> {
+    public CellConfiguration(int initialSizeX, int initialSizeY) {
         this(EmptyCell.getInstance(), initialSizeX, initialSizeY);
     }
 
-    public GridConfiguration(Cell background, int initialSizeX, int initialSizeY) {
+    public CellConfiguration(Cell background, int initialSizeX, int initialSizeY) {
         super(background, initialSizeX, initialSizeY);
     }
 
@@ -19,7 +19,7 @@ public class GridConfiguration extends MutableGrid<Cell> {
         int sizeX = this.getSizeX();
         int sizeY = this.getSizeY();
         StringBuilder builder = new StringBuilder();
-        builder.append(String.format("GridConfiguration(sizeX=%s, sizeY=%s, cells=", sizeX, sizeY));
+        builder.append(String.format("CellConfiguration(sizeX=%s, sizeY=%s, cells=", sizeX, sizeY));
         builder.append(System.lineSeparator());
         char[][] grid = new char[sizeX * 3][sizeY * 3];
 

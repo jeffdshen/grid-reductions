@@ -14,7 +14,7 @@ import types.Gadget;
 import types.Location;
 import types.Side;
 import types.configuration.GadgetConfiguration;
-import types.configuration.GridConfiguration;
+import types.configuration.CellConfiguration;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ public class LargeNode {
     public static void addConstraint(
         Wirer wirer,
         Shifter shifter,
-        GridConfiguration config,
+        CellConfiguration config,
         LinearProgram.Builder lp,
         Location start,
         Location end,
@@ -40,14 +40,14 @@ public class LargeNode {
     public static void place(
         Wirer wirer,
         Shifter shifter,
-        GridConfiguration gridConfig,
+        CellConfiguration cellConfig,
         GadgetConfiguration config,
         Map<String, Double> sol,
         Location start,
         Location end,
         Gadget g
     ) {
-        new LargeNodePlacer(wirer, shifter, gridConfig, config, sol, start, end, g).place();
+        new LargeNodePlacer(wirer, shifter, cellConfig, config, sol, start, end, g).place();
     }
 
     public static List<Boolean> getIsInput(final Gadget g, final Direction d, List<Side> sides) {
@@ -84,7 +84,7 @@ public class LargeNode {
         private LargeNodePlacer (
             Wirer wirer,
             Shifter shifter,
-            GridConfiguration gridConfig,
+            CellConfiguration cellConfig,
             GadgetConfiguration config,
             Map<String, Double> sol,
             Location start,
@@ -99,7 +99,7 @@ public class LargeNode {
             this.g = g;
 
             Direction startDir = getBoundaryStartDir();
-            gridPorts = GridUtils.getPorts(gridConfig, new Side(start, startDir), end);
+            gridPorts = GridUtils.getPorts(cellConfig, new Side(start, startDir), end);
             gridSides = GridUtils.getBoundaryAsMap(new Side(start, startDir), end);
             gadgetPorts = GadgetUtils.getPorts(g, new Side(0, 0, startDir), GridUtils.getCorner(g));
         }
@@ -180,7 +180,7 @@ public class LargeNode {
         private LargeNodeConstraint(
             Wirer wirer,
             Shifter shifter,
-            GridConfiguration config,
+            CellConfiguration config,
             LinearProgram.Builder lp,
             Location start,
             Location end,
