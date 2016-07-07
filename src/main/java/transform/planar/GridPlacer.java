@@ -1,14 +1,13 @@
 package transform.planar;
 
-import com.google.common.base.Function;
-import com.google.common.base.Predicate;
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
 import transform.GadgetConverter;
 import types.Direction;
 import types.Gadget;
 import types.Location;
+import types.Side;
 import types.configuration.AtomicConfiguration;
 import types.configuration.CellConfiguration;
 import types.configuration.cells.*;
@@ -28,6 +27,11 @@ public class GridPlacer {
     private final GridExpander expander;
     private final GadgetConverter converter;
 
+    // weights for getting a path.
+    private final int crossover = 20;
+    private final int turn = 5;
+    private final int wire = 3;
+
     public GridPlacer(AtomicConfiguration config, Map<String, Gadget> gadgets) {
         this.config = config;
         this.gadgets = ImmutableMap.copyOf(gadgets);
@@ -45,12 +49,14 @@ public class GridPlacer {
         // assume nodes are in topological order
         for (AtomicNode node : nodes) {
             CellConfiguration nodeGrid = converter.toGridConfiguration(gadgets.get(node.getName()), node.getId());
-            Location loc = getPlace(nodeGrid);
-            if (loc == null) {
+            List<Location> locs = getPlaces(nodeGrid);
+            if (locs.isEmpty()) {
                 grid.resize(grid.getSizeX() + nodeGrid.getSizeX() + 2, grid.getSizeY() + nodeGrid.getSizeY() + 2);
-                loc = getPlace(nodeGrid);
+                locs = getPlaces(nodeGrid);
             }
-            grid.put(nodeGrid, loc);
+
+            Location best = locs.get(0);
+            grid.put(nodeGrid, best);
             connect(node);
         }
 
@@ -60,8 +66,8 @@ public class GridPlacer {
     private void connect(AtomicNode node) {
         for (int i = 0; i < node.inputSize(); i++) {
             AtomicPort port = node.getInputPort(i);
-            SearchVertex end = find(port);
-            SearchVertex start = find(config.getConnectingPort(port));
+            Side end = find(port);
+            Side start = find(config.getConnectingPort(port));
 
             if (start == null || end == null) {
                 port = config.getConnectingPort(port);
@@ -72,26 +78,25 @@ public class GridPlacer {
                 );
             }
 
-            List<SearchVertex> path = getPath(start, end);
+            List<Side> path = getPath(start, end);
             // skip start
             for (int j = 1; j + 1 < path.size(); j += 2) {
-                SearchVertex input = path.get(j);
-                SearchVertex output = path.get(j + 1);
-                assert(input.loc.equals(output.loc));
-                Cell cell = grid.getCell(input.loc);
+                Side input = path.get(j);
+                Side output = path.get(j + 1);
+                Cell cell = grid.getCell(input.getLocation());
                 switch(cell.getCellType()) {
                     case EMPTY:
-                        if (input.d == output.d.opposite()) {
-                            grid.put(WireCell.getWire(output.d), input.loc);
+                        if (input.getDirection() == output.getDirection().opposite()) {
+                            grid.put(WireCell.getWire(output.getDirection()), input.getLocation());
                         } else {
-                            grid.put(new TurnCell(input.d, output.d), input.loc);
+                            grid.put(new TurnCell(input.getDirection(), output.getDirection()), input.getLocation());
                         }
                         break;
                     case WIRE:
-                        grid.put(new CrossoverCell(cell.getOutputDirection(0), output.d), input.loc);
+                        grid.put(new CrossoverCell(cell.getOutputDirection(0), output.getDirection()), input.getLocation());
                         break;
                     default:
-                        assert false;
+                        Preconditions.checkState(false);
                         break;
                 }
             }
@@ -100,17 +105,20 @@ public class GridPlacer {
         }
     }
 
-    private SearchVertex find(AtomicPort port) {
+    private Side find(AtomicPort port) {
         for (int i = 0; i < grid.getSizeX(); i++) {
             for (int j = 0; j < grid.getSizeY(); j++) {
                 Cell c = grid.getCell(i, j);
-                if (c.getCellType() == CellType.PORT && c.getId().equals(port.getId())) {
-                    for (Direction d : Direction.values()) {
-                        Port p = port.getPort();
-                        if (((p.isInput() && c.isInput(d)) || (!p.isInput() && c.isOutput(d)))
-                                && p.getPortNumber() == c.getPortNumber(d)) {
-                            return new SearchVertex(new Location(i, j), d);
-                        }
+
+                if (c.getCellType() != CellType.PORT || !c.getId().equals(port.getId())) {
+                    continue;
+                }
+
+                for (Direction d : Direction.values()) {
+                    Port p = port.getPort();
+                    if (((p.isInput() && c.isInput(d)) || (!p.isInput() && c.isOutput(d)))
+                            && p.getPortNumber() == c.getPortNumber(d)) {
+                        return new Side(new Location(i, j), d);
                     }
                 }
             }
@@ -118,13 +126,14 @@ public class GridPlacer {
         return null;
     }
 
-    private Location getPlace(CellConfiguration node) {
+    private List<Location> getPlaces(CellConfiguration node) {
         // leave space for wires
         int x = node.getSizeX() + 2;
         int y = node.getSizeY() + 2;
         int[][] sizeX = new int[grid.getSizeX()][grid.getSizeY()];
         int[][] sizeY = new int[grid.getSizeX()][grid.getSizeY()];
 
+        // use dp to calculate what size rectangle fits at each location
         for (int i = grid.getSizeX() - 1; i >= 0; i--) {
             for (int j = grid.getSizeY() - 1; j >= 0; j--) {
                 if (grid.getCell(i, j).getCellType() != CellType.EMPTY) {
@@ -148,21 +157,22 @@ public class GridPlacer {
             }
         }
 
+        ArrayList<Location> locs = new ArrayList<>();
         for (int i = 0; i < grid.getSizeX(); i++) {
             for (int j = 0; j < grid.getSizeY(); j++) {
                 if (sizeX[i][j] >= x && sizeY[i][j] >= y) {
-                    return new Location(i + 1, j + 1);
+                    locs.add(new Location(i + 1, j + 1));
                 }
             }
         }
-        return null;
+        return Collections.unmodifiableList(locs);
     }
 
-    private List<SearchVertex> getPath(SearchVertex start, SearchVertex end) {
-        Map<SearchVertex, SearchVertex> prev = new HashMap<>();
-        final Map<SearchVertex, Integer> dist = new HashMap<>();
+    private List<Side> getPath(Side start, Side end) {
+        Map<Side, Side> prev = new HashMap<>();
+        final Map<Side, Integer> dist = new HashMap<>();
         PriorityQueue<VertexDistance> queue = new PriorityQueue<>();
-        Set<SearchVertex> seen = new HashSet<>();
+        Set<Side> seen = new HashSet<>();
 
         dist.put(start, 0);
         queue.add(new VertexDistance(start, 0));
@@ -191,14 +201,14 @@ public class GridPlacer {
             }
         }
 
-        ImmutableList.Builder<SearchVertex> builder = ImmutableList.builder();
-        SearchVertex cur = end;
+        ImmutableList.Builder<Side> builder = ImmutableList.builder();
+        Side cur = end;
         while (cur != null && !cur.equals(start)) {
             builder.add(cur);
             cur = prev.get(cur);
         }
         if (cur == null) {
-//            System.out.println(grid);
+            System.out.println(grid);
             throw new IllegalStateException(String.format("Unexpected error, no path from %s to %s", start, end));
         }
         builder.add(cur);
@@ -206,51 +216,29 @@ public class GridPlacer {
     }
 
     private Iterable<VertexDistance> getNeighbors(final VertexDistance u) {
-        Cell c = grid.getCell(u.v.loc);
-        Iterable<VertexDistance> neighbors = ImmutableList.of(
-            new VertexDistance(new SearchVertex(u.v.loc.add(u.v.d), u.v.d.opposite()), 0));
+        Cell c = grid.getCell(u.v.getLocation());
 
-        if (c.getCellType() == CellType.WIRE || c.getCellType() == CellType.EMPTY) {
-            Iterable<VertexDistance> cellNeighbors = Iterables.transform(Arrays.asList(Direction.values()),
-                new Function<Direction, VertexDistance>() {
-                    @Override
-                    public VertexDistance apply(Direction dir) {
-                        Direction opp = u.v.d.opposite();
-                        int x = opp.getX() - dir.getX();
-                        int y = opp.getY() - dir.getY();
-                        int dist = x * x + y * y + 1;
-                        return new VertexDistance(new SearchVertex(u.v.loc, dir), dist);
-                    }
-                }
-            );
-            neighbors = Iterables.concat(neighbors, Iterables.filter(cellNeighbors,
-                new Predicate<VertexDistance>() {
-                    @Override
-                    public boolean apply(VertexDistance x) {
-                        Cell c = grid.getCell(x.v.loc);
-                        return !c.isInput(x.v.d) && !c.isOutput(x.v.d);
-                    }
-
-                }
-            ));
+        ImmutableList.Builder<VertexDistance> builder = ImmutableList.builder();
+        if (grid.isValid(u.v.opposite().getLocation())) {
+            builder.add(new VertexDistance(u.v.opposite(), 0));
         }
 
-        neighbors = Iterables.filter(neighbors,
-            new Predicate<VertexDistance>() {
-                @Override
-                public boolean apply(VertexDistance x) {
-                    return grid.isValid(x.v.loc);
-                }
-            }
-        );
-        return neighbors;
+        if (c.getCellType() == CellType.WIRE) {
+            builder.add(new VertexDistance(u.v.clockwise().clockwise(), crossover));
+        } else if (c.getCellType() == CellType.EMPTY) {
+            builder.add(new VertexDistance(u.v.clockwise().clockwise(), wire));
+            builder.add(new VertexDistance(u.v.clockwise(), turn));
+            builder.add(new VertexDistance(u.v.anticlockwise(), turn));
+        }
+
+        return builder.build();
     }
 
     private static class VertexDistance implements Comparable<VertexDistance> {
-        public final SearchVertex v;
+        public final Side v;
         public final int dist;
 
-        public VertexDistance(SearchVertex v, int dist) {
+        public VertexDistance(Side v, int dist) {
             this.v = v;
             this.dist = dist;
         }
@@ -280,38 +268,6 @@ public class GridPlacer {
         @Override
         public String toString() {
             return getClass().getName() + "[v=" + v + ",dist=" + dist + "]";
-        }
-    }
-
-    private static class SearchVertex {
-        public final Location loc;
-        public final Direction d;
-
-        private SearchVertex(Location loc, Direction d) {
-            this.loc = loc;
-            this.d = d;
-        }
-
-        @Override
-        public int hashCode() {
-            int hash = 7;
-            hash = 71 * hash + loc.hashCode();
-            hash = 71 * hash + d.hashCode();
-            return hash;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o instanceof SearchVertex) {
-                SearchVertex that = (SearchVertex) o;
-                return (this.loc.equals(that.loc)) && (this.d == that.d);
-            }
-            return super.equals(o);
-        }
-
-        @Override
-        public String toString() {
-            return getClass().getName() + "[loc=" + loc + ",d=" + d + "]";
         }
     }
 }

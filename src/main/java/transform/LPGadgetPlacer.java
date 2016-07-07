@@ -288,23 +288,24 @@ public class LPGadgetPlacer {
     private Map<String, Double> runLP(CellConfiguration config) throws Exception {
         LinearProgram.Builder lp = LinearProgram.builder();
 
-        ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
-        for (int i = 1; i <= config.getSizeX(); i++) {
-            builder.put(getSlice(i).x, 1);
-        }
+//        ImmutableMap.Builder<String, Integer> builder = ImmutableMap.builder();
+//        for (int i = 1; i <= config.getSizeX(); i++) {
+//            builder.put(getSlice(i).x, 1);
+//        }
+//
+//        for (int i = 1; i <= config.getSizeY(); i++) {
+//            builder.put(getSlice(i).y, 1);
+//        }
+//        builder.put(getSlice(0).x, -config.getSizeX());
+//        builder.put(getSlice(0).y, -config.getSizeY());
+//
+//        lp.setObjective(builder.build());
+//        System.out.println(equalTo(builder.build(), 1));
 
-        for (int i = 1; i <= config.getSizeY(); i++) {
-            builder.put(getSlice(i).y, 1);
-        }
-        builder.put(getSlice(0).x, -config.getSizeX());
-        builder.put(getSlice(0).y, -config.getSizeY());
-
-        lp.setObjective(builder.build());
-        System.out.println(equalTo(builder.build(), 1));
-//        lp.setObjective(ImmutableMap.of(
-//            getSlice(0).x, -1, getSlice(config.getSizeX()).x, 1,
-//            getSlice(0).y, -1, getSlice(config.getSizeY()).y, 1
-//        ));
+        lp.setObjective(ImmutableMap.of(
+            getSlice(0).x, -1, getSlice(config.getSizeX()).x, 1,
+            getSlice(0).y, -1, getSlice(config.getSizeY()).y, 1
+        ));
 
         addBasicConstraints(config, lp);
 
