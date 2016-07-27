@@ -25,6 +25,7 @@ import java.util.Map;
  * Transforms CellConfiguration into a 2-d array of strings representing the actual cells
  */
 public class GadgetPlacer {
+    //TODO deprecated, remove
 
     //input-> output direction at input, input->output direction at output
     private Map<Direction, Map<Direction, Gadget>> turns;

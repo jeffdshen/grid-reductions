@@ -20,14 +20,22 @@ import java.util.Set;
  * or throws an error if not all labels in the problem can be constructed
  *
  */
-public class ConfigurationResolver {
+public class ConfigurationResolver implements Processor<Configuration, AtomicConfiguration> {
+    private final Iterable<Configuration> subs;
+    private final Set<String> atoms;
 
-    public AtomicConfiguration resolve(Configuration problem, Iterable<Configuration> subs, Set<String> atoms){
+    public ConfigurationResolver(Iterable<Configuration> subs, Set<String> atoms) {
+        this.subs = subs;
+        this.atoms = atoms;
+    }
+
+    @Override
+    public AtomicConfiguration process(Configuration problem){
         //a map of label name to chosen substitute
-        Map<String, Configuration> chosenSubs = new HashMap<String, Configuration>();
-        Set<String> available = new HashSet<String>(atoms);
+        Map<String, Configuration> chosenSubs = new HashMap<>();
+        Set<String> available = new HashSet<>(atoms);
         // maps a label to all the labels used in its sub if we've added it to chosenSubs
-        Map<String, Set<String>> dependencies = new HashMap<String, Set<String>>();
+        Map<String, Set<String>> dependencies = new HashMap<>();
 
         //build all the different labels we can make.
         boolean shouldRetry = true;
@@ -39,7 +47,7 @@ public class ConfigurationResolver {
                     continue;
                 }
                 boolean canBuild = true;
-                Set<String> neededNames = new HashSet<String>();
+                Set<String> neededNames = new HashSet<>();
                 for (Node node : sub.getNodes()) {
                     if (node.getType().equals(NodeType.LABELLED)) {
                         String nodeName = node.getName();
@@ -60,14 +68,14 @@ public class ConfigurationResolver {
         }
 
 
-        Set<String> needed = new HashSet<String>();
+        Set<String> needed = new HashSet<>();
         //travel the problem config to find all labels needed. keep only the necessary labels
         for( Node node: problem.getNodes()){
             if(node.getType().equals(NodeType.LABELLED)){
                 addDependencies(node.getName(), dependencies, needed);
             }
         }
-        Set<Configuration> usedSubs = new HashSet<Configuration>();
+        Set<Configuration> usedSubs = new HashSet<>();
         for(String name: needed){
             if(chosenSubs.containsKey(name)){
                 usedSubs.add(chosenSubs.get(name));

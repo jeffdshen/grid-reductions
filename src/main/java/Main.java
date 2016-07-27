@@ -1,24 +1,22 @@
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.Options;
 import parser.ConfigurationParser;
 import parser.GadgetParser;
 import parser.SATParser;
 import postprocessor.ImagePostProcessor;
-import postprocessor.PostProcessor;
 import postprocessor.PostProcessorUtils;
+import reduction.module.*;
+import reduction.ReductionRunner;
+import reduction.ReductionXmlParser;
+import reduction.xml.ReductionXml;
 import transform.ConfigurationResolver;
 import transform.GadgetUtils;
-import transform.GridUtils;
 import transform.LPGadgetPlacer;
-import transform.planar.GridPlacer;
+import transform.planar.GadgetPlanarizer;
 import types.Gadget;
 import types.Grid;
 import types.configuration.AtomicConfiguration;
+import types.configuration.CellConfiguration;
 import types.configuration.Configuration;
 import types.configuration.GadgetConfiguration;
 import utils.ResourceUtils;
@@ -27,11 +25,11 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 public class Main {
+    //TODO remove unused code
     public void run(
         String expr, Iterable<File> gadgetFiles, Iterable<Reader> configFiles, Iterable<File> wireFiles, File outFile
     ) throws Exception {
@@ -41,11 +39,11 @@ public class Main {
         Iterable<Configuration> configs = getConfigs(configFiles);
         Iterable<Gadget> wires = GadgetUtils.getSymmetries(getWires(wireFiles));
 
-        AtomicConfiguration config = new ConfigurationResolver().resolve(c, configs, gadgets.keySet());
-        GridPlacer placer = new GridPlacer(config, gadgets);
-        placer.place();
+        AtomicConfiguration config = new ConfigurationResolver(configs, gadgets.keySet()).process(c);
+        GadgetPlanarizer planarizer = new GadgetPlanarizer(gadgets);
+        CellConfiguration grid = planarizer.process(config);
 
-        System.out.println(placer.getGrid());
+        System.out.println(grid);
 
         Iterable<Gadget> crossovers = GadgetUtils.getRotations(gadgets.get("CROSSOVER"));
         Iterable<Gadget> turns = GadgetUtils.getSymmetries(gadgets.get("TURN"));
@@ -53,7 +51,7 @@ public class Main {
         LPGadgetPlacer gadgetPlacer = new LPGadgetPlacer(
             wires, turns, crossovers, empty, ImmutableList.copyOf(gadgets.values())
         );
-        GadgetConfiguration gadgetConfig = gadgetPlacer.place(placer.getGrid());
+        GadgetConfiguration gadgetConfig = gadgetPlacer.place(grid);
         Grid<String> output = gadgetConfig.toGrid(empty);
 
         try (PrintWriter out = new PrintWriter(new BufferedWriter(new FileWriter(outFile)))) {
@@ -67,13 +65,13 @@ public class Main {
         ipp.write(image, imageOutput);
     }
 
-    public Map<String, BufferedImage> getAkariImages() throws IOException {
+    public Map<String, Image> getAkariImages() throws IOException {
         BufferedImage zero = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/zero10.png"));
         BufferedImage one = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/one10.png"));
         BufferedImage two = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/two10.png"));
         BufferedImage blank = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/blank10.png"));
         BufferedImage black = ImageIO.read(ResourceUtils.getAbsoluteFile(getClass(), "Akari/images/black10.png"));
-        return ImmutableMap.of("0", zero, "1", one, "2", two, "x", black, ".", blank);
+        return ImmutableMap.<String, Image>of("0", zero, "1", one, "2", two, "x", black, ".", blank);
     }
 
     public List<Gadget> getWires(Iterable<File> wires) throws IOException {
@@ -82,7 +80,7 @@ public class Main {
         ImmutableList.Builder<Gadget> builder = ImmutableList.builder();
         for (File file : wires) {
             System.out.println(file);
-            Gadget gadget = parser.parseGadget(file);
+            Gadget gadget = parser.parse(file);
             if (gadget != null) {
                 builder.add(gadget);
             }
@@ -97,7 +95,7 @@ public class Main {
         ImmutableMap.Builder<String, Gadget> builder = ImmutableMap.builder();
         for (File file : gadgets) {
             System.out.println(file);
-            Gadget gadget = parser.parseGadget(file);
+            Gadget gadget = parser.parse(file);
             builder.put(gadget.getName(), gadget);
         }
 
@@ -109,7 +107,7 @@ public class Main {
 
         ImmutableList.Builder<Configuration> builder = ImmutableList.builder();
         for (Reader reader : configs) {
-            Configuration config = parser.parseConfiguration(reader);
+            Configuration config = parser.parse(reader, null);
             builder.add(config);
         }
 
@@ -125,43 +123,58 @@ public class Main {
     }
 
     public static void main(String[] args) throws Exception {
-        Options options = new Options();
-        options.addOption("g", "gadgets", true, "directory for gadgets, defaults to ./gadgets");
-        options.addOption("c", "configs", true, "directory for configs");
-        options.addOption("d", true, "the default directory");
-        options.addOption("w", "wires", true, "directory for wires, defaults to ./wires");
-        options.addOption("o", "out", true, "output file location, defaults to ./out.txt");
+        ReductionXmlParser parser = new ReductionXmlParser();
 
-        CommandLineParser parser = new GnuParser();
-        CommandLine cmd = parser.parse(options, args);
+        File file = ResourceUtils.getRelativeFile(Main.class, "Akari/akari.xml");
+        ReductionXml reductionXml = parser.parse(file);
+        ReductionRunner runner = new ReductionRunner(ImmutableList.of(
+            new SATParsing(),
+            new ConfigurationSubstitution(),
+            new GadgetPlanarization(),
+            new GadgetAlignment(),
+            new GadgetPlacement(),
+            new ImagePostProcessing()
+        ));
 
-        File curDir = new File(System.getProperty("user.dir"));
-        File gadgetsDir = cmd.hasOption("g") ? new File(cmd.getOptionValue("g")) : new File(curDir, "gadgets");
-        File configsDir = cmd.hasOption("c") ? new File(cmd.getOptionValue("c")): null;
-        File wiresDir = cmd.hasOption("w") ? new File(cmd.getOptionValue("w")) : new File(curDir, "wires");
-        File outDir = cmd.hasOption("o") ? new File(cmd.getOptionValue("o")) : new File(curDir, "out.txt");
-        File defaultsDir = cmd.hasOption("d") ? new File(cmd.getOptionValue("d")) : null;
-//        InputStream defaultConfigDir = Main.class.getResourceAsStream("default/configs");
-//        Main.class.getResource("default/configs").getPath();
-        String bool = cmd.getArgs()[0];
+        runner.run(reductionXml, file.getParentFile());
 
-        Main main = new Main();
-        Iterable<File> gadgets = Arrays.asList(gadgetsDir.listFiles());
-        Iterable<Reader> configs = ImmutableList.of();
-        if (configsDir != null) {
-            configs = Iterables.concat(configs, toReader(Arrays.asList(configsDir.listFiles())));
-        }
-
-        if (defaultsDir != null) {
-            configs = Iterables.concat(configs, toReader(Arrays.asList(defaultsDir.listFiles())));
-        }
-
-        Iterable<File> wires = Arrays.asList(wiresDir.listFiles());
-
-//        if (!cmd.hasOption("d")) {
-//            configs = Iterables.concat(configs, Arrays.asList(defaultConfigDir));
+//        Options options = new Options();
+//        options.addOption("g", "gadgets", true, "directory for gadgets, defaults to ./gadgets");
+//        options.addOption("c", "configs", true, "directory for configs");
+//        options.addOption("d", true, "the default directory");
+//        options.addOption("w", "wires", true, "directory for wires, defaults to ./wires");
+//        options.addOption("o", "out", true, "output file location, defaults to ./out.txt");
+//
+//        CommandLineParser parser = new GnuParser();
+//        CommandLine cmd = parser.parse(options, args);
+//
+//        File curDir = new File(System.getProperty("user.dir"));
+//        File gadgetsDir = cmd.hasOption("g") ? new File(cmd.getOptionValue("g")) : new File(curDir, "gadgets");
+//        File configsDir = cmd.hasOption("c") ? new File(cmd.getOptionValue("c")): null;
+//        File wiresDir = cmd.hasOption("w") ? new File(cmd.getOptionValue("w")) : new File(curDir, "wires");
+//        File outDir = cmd.hasOption("o") ? new File(cmd.getOptionValue("o")) : new File(curDir, "out.txt");
+//        File defaultsDir = cmd.hasOption("d") ? new File(cmd.getOptionValue("d")) : null;
+////        InputStream defaultConfigDir = Main.class.getResourceAsStream("default/configs");
+////        Main.class.getResource("default/configs").getPath();
+//        String bool = cmd.getArgs()[0];
+//
+//        Main main = new Main();
+//        Iterable<File> gadgets = Arrays.asList(gadgetsDir.listFiles());
+//        Iterable<Reader> configs = ImmutableList.of();
+//        if (configsDir != null) {
+//            configs = Iterables.concat(configs, toReader(Arrays.asList(configsDir.listFiles())));
 //        }
-        main.run(bool, gadgets, configs, wires, outDir);
+//
+//        if (defaultsDir != null) {
+//            configs = Iterables.concat(configs, toReader(Arrays.asList(defaultsDir.listFiles())));
+//        }
+//
+//        Iterable<File> wires = Arrays.asList(wiresDir.listFiles());
+//
+////        if (!cmd.hasOption("d")) {
+////            configs = Iterables.concat(configs, Arrays.asList(defaultConfigDir));
+////        }
+//        main.run(bool, gadgets, configs, wires, outDir);
     }
 
     public void printStringArray(PrintWriter out, String[][] array){

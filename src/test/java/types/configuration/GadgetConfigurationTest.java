@@ -15,14 +15,14 @@ public class GadgetConfigurationTest {
     public void testConnect() throws Exception {
         GadgetParser parser = new GadgetParser();
         String dir = "types/gadget/circuit/";
-        Gadget and = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "and.txt"));
-        Gadget wire = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_2.txt"));
-        Gadget wire2 = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_3.txt"));
-        Gadget empty = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "empty.txt"));
-        Gadget variable = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "variable.txt"));
+        Gadget and = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "and.txt"));
+        Gadget wire = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_2.txt"));
+        Gadget wire2 = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_3.txt"));
+        Gadget empty = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "empty.txt"));
+        Gadget variable = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "variable.txt"));
 
-        Gadget longAnd = parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "and.txt"));
-        Gadget twoAnds = parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "2ands.txt"));
+        Gadget longAnd = parser.parse(ResourceUtils.getRelativeFile(getClass(), "and.txt"));
+        Gadget twoAnds = parser.parse(ResourceUtils.getRelativeFile(getClass(), "2ands.txt"));
 
 
         String emptyCell = empty.getCell(0, 0);

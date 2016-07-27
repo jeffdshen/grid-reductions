@@ -10,5 +10,5 @@ public interface LPSolver {
      * @param b a vector of coefficients
      * @return a minimal vector x satisfying the constraints
      */
-    public double[] minimize(double[] c, double[][] G, double[] h, double[][] A, double[] b) throws Exception;
+    double[] minimize(double[] c, double[][] G, double[] h, double[][] A, double[] b) throws Exception;
 }

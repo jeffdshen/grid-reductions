@@ -17,7 +17,7 @@ public class GadgetConverterTest {
     @Test
     public void testToGridConfiguration() throws Exception {
         GadgetParser parser = new GadgetParser();
-        Gadget gadget = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), "types/gadget/circuit/and.txt"));
+        Gadget gadget = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), "types/gadget/circuit/and.txt"));
         GadgetConverter converter = new GadgetConverter();
         CellConfiguration grid = converter.toGridConfiguration(gadget, ImmutableList.of(1, 2, 3));
 

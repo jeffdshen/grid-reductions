@@ -2,6 +2,10 @@ package parser;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import org.apache.log4j.Level;
+import org.apache.log4j.Logger;
+import reduction.ReductionRunner;
+import sun.reflect.annotation.ExceptionProxy;
 import types.configuration.Configuration;
 import types.configuration.nodes.*;
 
@@ -22,11 +26,21 @@ public class SATParser {
     private Node outputNode;
     private Node endNode;
 
+    private static final Logger logger = Logger.getLogger(SATParser.class.getName());
+
+    public Configuration parseSAT(String expr) {
+        try {
+            return parseSATHelper(expr);
+        } catch (Exception e) {
+            logger.log(Level.ERROR, e.getMessage(), e);
+            return null;
+        }
+    }
 
     //Parses a SAT expression and outputs a configuration.
     // Uses SPLIT nodes to duplicate variables from VARIABLE nodes
     // Requires: AND, SPLIT, NOT, OR, VARIABLE, END
-    public Configuration parseSAT(String expr) throws Exception {
+    private Configuration parseSATHelper(String expr) throws Exception {
         tokenizer = new SATTokenizer(expr);
         id = 0;
 

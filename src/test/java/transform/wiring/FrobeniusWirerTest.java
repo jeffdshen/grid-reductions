@@ -18,11 +18,11 @@ public class FrobeniusWirerTest {
     public void testConnect() throws Exception {
         GadgetParser parser = new GadgetParser();
         String dir = "types/gadget/circuit/";
-        Gadget wire2 = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_2.txt"));
-        Gadget wire3 = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_3.txt"));
-        Gadget wire5 = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_5.txt"));
-        Gadget wire7 = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_7.txt"));
-        Gadget empty = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "empty.txt"));
+        Gadget wire2 = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_2.txt"));
+        Gadget wire3 = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_3.txt"));
+        Gadget wire5 = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_5.txt"));
+        Gadget wire7 = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_7.txt"));
+        Gadget empty = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "empty.txt"));
         Wirer wirer = new FrobeniusWirer(ImmutableList.of(wire2, wire3, wire5, wire7));
         assertEquals(wirer.minThickness(Direction.EAST), 0);
         assertEquals(wirer.minLength(Direction.EAST, 0), 24);

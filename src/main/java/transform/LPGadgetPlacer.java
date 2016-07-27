@@ -44,11 +44,11 @@ public class LPGadgetPlacer {
         Iterable<Gadget> crossovers,
         Gadget empty,
         Iterable<Gadget> gadgets
-    ) throws Exception {
+    ) {
         this.empty = empty;
-        if (empty.getSizeX() != 1 || empty.getSizeY() != 1) {
-            throw new Exception("Non-1x1 empty gadgets are not supported yet");
-        }
+        Preconditions.checkArgument(
+            empty.getSizeX() == 1 || empty.getSizeY() == 1, "Non-1x1 empty gadgets are not supported yet"
+        );
 
         this.wires = GadgetUtils.getWireMap(wires);
         this.gadgets = GadgetUtils.getGadgetMap(gadgets);
@@ -58,7 +58,7 @@ public class LPGadgetPlacer {
         this.shifter = new TurnShifter(turns, wires, wirer);
     }
 
-    private void addBasicConstraints(CellConfiguration config, LinearProgram.Builder lp) throws Exception {
+    private void addBasicConstraints(CellConfiguration config, LinearProgram.Builder lp) {
         // slices are increasing, slice0 is 0
         lp.addConstraint(equalTo(getSlice(0).x, 0));
         for (int x = 0; x < config.getSizeX(); x++) {
@@ -404,7 +404,7 @@ public class LPGadgetPlacer {
         }
     }
 
-    private GadgetConfiguration placeGadgets(CellConfiguration cellConfig, Map<String, Double> sol) throws Exception {
+    private GadgetConfiguration placeGadgets(CellConfiguration cellConfig, Map<String, Double> sol) {
         GadgetConfiguration gadgetConfig = new GadgetConfiguration();
 
         // ports match gadget offsets, and gadget boundaries match up to the slices

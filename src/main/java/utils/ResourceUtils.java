@@ -17,6 +17,19 @@ public class ResourceUtils {
         return new InputStreamReader(stream);
     }
 
+    public static InputStream getInputStream(String resourceName) throws ResourceNotFoundException {
+        return getInputStream(ResourceUtils.class, resourceName);
+    }
+
+    public static InputStream getInputStream(Class clazz, String resourceName) throws ResourceNotFoundException {
+        InputStream stream = clazz.getResourceAsStream(resourceName);
+
+        if (stream == null) {
+            throw new ResourceNotFoundException();
+        }
+        return stream;
+    }
+
     public static File getRelativeFile(Class clazz, String resourceName) throws ResourceNotFoundException {
         try{
             return new File(Paths.get(clazz.getResource(".").toURI()).toFile(), resourceName);

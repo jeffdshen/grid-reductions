@@ -1,0 +1,120 @@
+<?reduction version="1.0" encoding="UTF-8"?>
+<reduction>
+    <data>
+        <gadgets>
+            <gadget>
+                <input type="file">gadgets/crossover.txt</input>
+                <type>crossover</type>
+                <symmetries>rotation</symmetries>
+            </gadget>
+            <gadget>
+                <input type="file">gadgets/empty.txt</input>
+                <type>empty</type>
+            </gadget>
+            <gadget>
+                <input type="file">gadgets/end.txt</input>
+            </gadget>
+            <gadget>
+                <input type="file">gadgets/or.txt</input>
+            </gadget>
+            <gadget>
+                <input type="file">gadgets/split-not.txt</input>
+            </gadget>
+            <gadget>
+                <input type="file">gadgets/terminator.txt</input>
+            </gadget>
+            <gadget>
+                <input type="file">gadgets/turn.txt</input>
+                <type>turn</type>
+                <symmetries>all</symmetries>
+            </gadget>
+            <gadget>
+                <input type="file">gadgets/variable.txt</input>
+            </gadget>
+            <gadget>
+                <input type="file">wires/wire-3.txt</input>
+                <type>wire</type>
+                <symmetries>all</symmetries>
+            </gadget>
+            <gadget>
+                <input type="file">wires/wire-4.txt</input>
+                <type>wire</type>
+                <symmetries>all</symmetries>
+            </gadget>
+        </gadgets>
+
+        <configs>
+            <config>
+                <input type="file">configs/not.txt</input>
+            </config>
+            <config>
+                <input type="file">configs/split.txt</input>
+            </config>
+            <config>
+                <input type="default_resource">configs/and-from-not-nor.txt</input>
+            </config>
+            <config>
+                <input type="default_resource">configs/nand-from-not-and.txt</input>
+            </config>
+            <config>
+                <input type="default_resource">configs/nor-from-not-or.txt</input>
+            </config>
+            <config>
+                <input type="default_resource">configs/not-from-nand.txt</input>
+            </config>
+            <config>
+                <input type="default_resource">configs/not-from-nor.txt</input>
+            </config>
+            <config>
+                <input type="default_resource">configs/or-from-not-nand.txt</input>
+            </config>
+        </configs>
+
+        <images sizeX="10" sizeY="10">
+            <image>
+                <key>x</key>
+                <input type="file">images/black10.png</input>
+            </image>
+            <image>
+                <key>.</key>
+                <input type="file">images/blank10.png</input>
+            </image>
+            <image>
+                <key>1</key>
+                <input type="file">images/one10.png</input>
+            </image>
+            <image>
+                <key>2</key>
+                <input type="file">images/two10.png</input>
+            </image>
+            <image>
+                <key>0</key>
+                <input type="file">images/zero10.png</input>
+            </image>
+        </images>
+    </data>
+
+    <modules>
+        <module>
+            <name>SATParsing</name>
+            <input type="string">x &amp;&amp; y</input>
+        </module>
+        <module>
+            <name>ConfigurationSubstitution</name>
+        </module>
+        <module>
+            <name>GadgetPlanarization</name>
+        </module>
+        <module>
+            <name>GadgetAlignment</name>
+        </module>
+        <module>
+            <name>GadgetPlacement</name>
+            <output type="file">akari.txt</output>
+        </module>
+        <module>
+            <name>ImagePostProcessing</name>
+            <output type="file">akari.png</output>
+        </module>
+    </modules>
+</reduction>

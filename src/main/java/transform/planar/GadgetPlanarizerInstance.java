@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import transform.GadgetConverter;
+import transform.Processor;
 import types.Direction;
 import types.Gadget;
 import types.Location;
@@ -18,7 +19,7 @@ import types.configuration.nodes.Port;
 import javax.annotation.Nonnull;
 import java.util.*;
 
-public class GridPlacer {
+class GadgetPlanarizerInstance {
     private static final int INITIAL_SIZE = 10;
 
     private CellConfiguration grid;
@@ -32,7 +33,7 @@ public class GridPlacer {
     private final int turn = 5;
     private final int wire = 3;
 
-    public GridPlacer(AtomicConfiguration config, Map<String, Gadget> gadgets) {
+    GadgetPlanarizerInstance(AtomicConfiguration config, Map<String, Gadget> gadgets) {
         this.config = config;
         this.gadgets = ImmutableMap.copyOf(gadgets);
         this.grid = new CellConfiguration(INITIAL_SIZE, INITIAL_SIZE);

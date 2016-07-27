@@ -16,7 +16,7 @@ public class ConfigurationParserTest {
     @Test
     public void testParseConfiguration() throws Exception {
         ConfigurationParser parser = new ConfigurationParser();
-        Configuration cfg = parser.parseConfiguration(ResourceUtils.getRelativeFile(getClass(), "nand.txt"));
+        Configuration cfg = parser.parse(ResourceUtils.getRelativeFile(getClass(), "nand.txt"));
         assertEquals(cfg.getName(), "NAND");
 
         assertEquals(ImmutableList.of(0, 1, 2, 4), ImmutableList.copyOf(Iterables.transform(cfg.getNodes(),

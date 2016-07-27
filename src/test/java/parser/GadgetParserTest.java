@@ -12,7 +12,7 @@ public class GadgetParserTest {
     @Test
     public void testParseGadget() throws Exception {
         GadgetParser parser = new GadgetParser();
-        Gadget gadget = parser.parseGadget(ResourceUtils.getReader(getClass(), "and.txt"), "and.txt");
+        Gadget gadget = parser.parse(ResourceUtils.getReader(getClass(), "and.txt"), "and.txt");
 
         assertEquals(gadget.getInputSize(), 2);
         assertEquals(gadget.getOutputSize(), 1);

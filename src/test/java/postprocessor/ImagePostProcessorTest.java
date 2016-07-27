@@ -8,8 +8,8 @@ import types.Gadget;
 import utils.ResourceUtils;
 
 import javax.imageio.ImageIO;
+import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.util.Map;
 
 public class ImagePostProcessorTest {
@@ -42,10 +42,10 @@ public class ImagePostProcessorTest {
         BufferedImage blank = ImageIO.read(ResourceUtils.getRelativeFile(getClass(), "akari/images/blank10.png"));
         BufferedImage black = ImageIO.read(ResourceUtils.getRelativeFile(getClass(), "akari/images/black10.png"));
 
-        Map<String, BufferedImage> map = ImmutableMap.of("0", zero, "1", one, "2", two, "x", black, ".", blank);
+        Map<String, Image> map = ImmutableMap.<String, Image>of("0", zero, "1", one, "2", two, "x", black, ".", blank);
 
         ImagePostProcessor ipp = new ImagePostProcessor(map, 10, 10);
-        Gadget g = new GadgetParser().parseGadget(ResourceUtils.getRelativeFile(getClass(), "akari/gadgets/or.txt"));
+        Gadget g = new GadgetParser().parse(ResourceUtils.getRelativeFile(getClass(), "akari/gadgets/or.txt"));
 
         BufferedImage or10 = ImageIO.read(ResourceUtils.getRelativeFile(getClass(), "akari/images/or10.png"));
         Assert.assertTrue(equals(or10, ipp.process(g)));

@@ -6,9 +6,10 @@ import com.google.common.collect.ImmutableSet;
 import org.testng.annotations.Test;
 import parser.GadgetParser;
 import parser.SATParser;
-import transform.planar.GridPlacer;
+import transform.planar.GadgetPlanarizer;
 import types.Gadget;
 import types.configuration.AtomicConfiguration;
+import types.configuration.CellConfiguration;
 import types.configuration.Configuration;
 import utils.ResourceUtils;
 
@@ -18,29 +19,30 @@ public class EndToEndTest {
     public void testPlace() throws Exception {
         SATParser s = new SATParser();
         Configuration c = s.parseSAT("((x && y) || x) && x");
-        AtomicConfiguration config = new ConfigurationResolver()
-            .resolve(c, ImmutableList.<Configuration>of(), ImmutableSet.of("AND", "OR", "VARIABLE", "SPLIT", "END"));
+        AtomicConfiguration config = new ConfigurationResolver(
+            ImmutableList.<Configuration>of(), ImmutableSet.of("AND", "OR", "VARIABLE", "SPLIT", "END")
+        ).process(c);
 
         String dir = "types/gadget/circuit/";
 
         GadgetParser parser = new GadgetParser();
-        Gadget and = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "and.txt"));
-        Gadget or = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "or.txt"));
-        Gadget var = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "variable.txt"));
-        Gadget split = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "split.txt"));
-        Gadget end = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "end.txt"));
-        Gadget wire = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_2.txt"));
-        Gadget wire2 = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_3.txt"));
-        Gadget turn = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "turn.txt"));
-        Gadget crossover = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "crossover.txt"));
-        Gadget empty = parser.parseGadget(ResourceUtils.getAbsoluteFile(getClass(), dir + "empty.txt"));
+        Gadget and = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "and.txt"));
+        Gadget or = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "or.txt"));
+        Gadget var = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "variable.txt"));
+        Gadget split = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "split.txt"));
+        Gadget end = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "end.txt"));
+        Gadget wire = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_2.txt"));
+        Gadget wire2 = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "wire_3.txt"));
+        Gadget turn = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "turn.txt"));
+        Gadget crossover = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "crossover.txt"));
+        Gadget empty = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "empty.txt"));
 
 
-        GridPlacer placer = new GridPlacer(
-            config, ImmutableMap.of("AND", and, "OR", or, "VARIABLE", var, "SPLIT", split, "END", end)
+        GadgetPlanarizer placer = new GadgetPlanarizer(
+            ImmutableMap.of("AND", and, "OR", or, "VARIABLE", var, "SPLIT", split, "END", end)
         );
-        placer.place();
-        System.out.println(placer.getGrid());
+        CellConfiguration grid = placer.process(config);
+        System.out.println(grid);
         GadgetPlacer gadgetPlacer = new GadgetPlacer(
             ImmutableList.of(wire, wire2),
             turn,
@@ -48,7 +50,7 @@ public class EndToEndTest {
             empty,
             ImmutableList.of(and, or, var, split, end)
         );
-        System.out.println(getStringArray(gadgetPlacer.place(placer.getGrid())));
+        System.out.println(getStringArray(gadgetPlacer.place(grid)));
     }
 
 

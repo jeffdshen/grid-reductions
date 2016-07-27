@@ -200,6 +200,15 @@ public class GadgetUtils {
         return turns.build();
     }
 
+    public static Set<String> getNames(Iterable<Gadget> gadgets) {
+        ImmutableSet.Builder<String> builder = ImmutableSet.builder();
+        for (Gadget g : gadgets) {
+            builder.add(g.getName());
+        }
+
+        return builder.build();
+    }
+
     /**
      * Returns all gadgets in the directory, where files are filtered by the file name
      */
@@ -219,7 +228,7 @@ public class GadgetUtils {
 
         ImmutableList.Builder<Gadget> builder = ImmutableList.builder();
         for (File file : gadgets) {
-            Gadget gadget = parser.parseGadget(file);
+            Gadget gadget = parser.parse(file);
             builder.add(gadget);
         }
 

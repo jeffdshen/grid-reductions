@@ -17,7 +17,7 @@ import java.util.Map;
 import static org.apache.log4j.Level.ERROR;
 import static org.apache.log4j.Level.WARN;
 
-public class GadgetParser {
+public class GadgetParser implements Parser<Gadget> {
     private static final Logger logger = Logger.getLogger(GadgetParser.class.getName());
 
     public GadgetParser() {
@@ -36,16 +36,21 @@ public class GadgetParser {
      * The outer boundary of the cells must either be an _ to represent no input or output port,
      * an I_ followed by the input number, or an O_ followed by the output number
      */
-    public Gadget parseGadget(File file) {
+    public Gadget parse(File file) {
         try (FileReader reader = new FileReader(file)) {
-            return parseGadget(reader, file.getAbsolutePath());
+            return parse(reader, file.getAbsolutePath());
         } catch (IOException e) {
             logger.log(ERROR, e.getMessage(), e);
         }
         return null;
     }
 
-    public void writeGadget(Gadget g, File file) {
+    @Override
+    public Gadget parse(InputStream stream, String id) {
+        return parse(new InputStreamReader(stream), id);
+    }
+
+    public void write(Gadget g, File file) {
         try (PrintWriter out = new PrintWriter(new FileWriter(file))) {
             out.println(g.getName());
 
@@ -81,7 +86,7 @@ public class GadgetParser {
         }
     }
 
-    public Gadget parseGadget(Reader reader, String gadgetId) {
+    public Gadget parse(Reader reader, String gadgetId) {
         return new GadgetParserInstance(reader, gadgetId).parseGadget();
     }
 

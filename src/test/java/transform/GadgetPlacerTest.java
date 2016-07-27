@@ -24,21 +24,21 @@ public class GadgetPlacerTest {
         List<Gadget> baseGadgets = new ArrayList<>();
 
         GadgetParser parser = new GadgetParser();
-        Gadget and = parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "bigand.txt"));
-        Gadget crossover = parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "crossover.txt"));
-        Gadget empty = parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "empty.txt"));
-        Gadget not = parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "not.txt"));
-        Gadget turn = parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "turn.txt"));
+        Gadget and = parser.parse(ResourceUtils.getRelativeFile(getClass(), "bigand.txt"));
+        Gadget crossover = parser.parse(ResourceUtils.getRelativeFile(getClass(), "crossover.txt"));
+        Gadget empty = parser.parse(ResourceUtils.getRelativeFile(getClass(), "empty.txt"));
+        Gadget not = parser.parse(ResourceUtils.getRelativeFile(getClass(), "not.txt"));
+        Gadget turn = parser.parse(ResourceUtils.getRelativeFile(getClass(), "turn.txt"));
 
         baseGadgets.add(and);
         baseGadgets.add(not);
 
-        fatWires.add(parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "wire-3x6.txt")));
-        fatWires.add(parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "wire-6x4.txt")));
-        fatWires.add(parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "wire-9x4.txt")));
+        fatWires.add(parser.parse(ResourceUtils.getRelativeFile(getClass(), "wire-3x6.txt")));
+        fatWires.add(parser.parse(ResourceUtils.getRelativeFile(getClass(), "wire-6x4.txt")));
+        fatWires.add(parser.parse(ResourceUtils.getRelativeFile(getClass(), "wire-9x4.txt")));
 
-        shortWires.add(parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "wire-3x2.txt")));
-        shortWires.add(parser.parseGadget(ResourceUtils.getRelativeFile(getClass(), "wire-3x3.txt")));
+        shortWires.add(parser.parse(ResourceUtils.getRelativeFile(getClass(), "wire-3x2.txt")));
+        shortWires.add(parser.parse(ResourceUtils.getRelativeFile(getClass(), "wire-3x3.txt")));
 
         GadgetPlacer fatPlacer = new GadgetPlacer(fatWires, turn, crossover, empty, baseGadgets);
         GadgetPlacer shortPlacer = new GadgetPlacer(shortWires, turn, crossover, empty, baseGadgets);

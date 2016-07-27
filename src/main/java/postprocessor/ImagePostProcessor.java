@@ -3,6 +3,7 @@ package postprocessor;
 import com.google.common.collect.ImmutableMap;
 import org.apache.log4j.Logger;
 import parser.GadgetParser;
+import transform.Processor;
 import types.Grid;
 
 import javax.imageio.ImageIO;
@@ -12,15 +13,16 @@ import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.util.Map;
 
-public class ImagePostProcessor implements PostProcessor<Grid<String>, BufferedImage>, PostWriter<BufferedImage> {
+public class ImagePostProcessor implements Processor<Grid<String>, BufferedImage>, PostWriter<BufferedImage> {
     private static final Logger logger = Logger.getLogger(GadgetParser.class.getName());
 
-    private final Map<String, BufferedImage> map;
+    private final Map<String, Image> map;
     private final int sizeX;
     private final int sizeY;
-    public ImagePostProcessor(Map<String, BufferedImage> map, int sizeX, int sizeY) {
+    public ImagePostProcessor(Map<String, Image> map, int sizeX, int sizeY) {
         this.sizeX = sizeX;
         this.sizeY = sizeY;
         this.map = ImmutableMap.copyOf(map);
@@ -54,6 +56,14 @@ public class ImagePostProcessor implements PostProcessor<Grid<String>, BufferedI
             ImageIO.write(image, "PNG", file);
         } catch (IOException e) {
             logger.error("Could not write image to file : " + file.getName(), e);
+        }
+    }
+
+    public void write(BufferedImage image, OutputStream stream) {
+        try {
+            ImageIO.write(image, "PNG", stream);
+        } catch (IOException e) {
+            logger.error("Could not write image to stream: ", e);
         }
     }
 }
