@@ -3,6 +3,7 @@ package postprocessor;
 import com.google.common.collect.ImmutableMap;
 import org.apache.log4j.Logger;
 import parser.GadgetParser;
+import parser.Writer;
 import transform.Processor;
 import types.Grid;
 
@@ -16,7 +17,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.util.Map;
 
-public class ImagePostProcessor implements Processor<Grid<String>, BufferedImage>, PostWriter<BufferedImage> {
+public class ImagePostProcessor implements Processor<Grid<String>, BufferedImage>, Writer<BufferedImage> {
     private static final Logger logger = Logger.getLogger(GadgetParser.class.getName());
 
     private final Map<String, Image> map;
@@ -50,7 +51,6 @@ public class ImagePostProcessor implements Processor<Grid<String>, BufferedImage
         return image;
     }
 
-    @Override
     public void write(BufferedImage image, File file) {
         try {
             ImageIO.write(image, "PNG", file);
@@ -59,6 +59,7 @@ public class ImagePostProcessor implements Processor<Grid<String>, BufferedImage
         }
     }
 
+    @Override
     public void write(BufferedImage image, OutputStream stream) {
         try {
             ImageIO.write(image, "PNG", stream);

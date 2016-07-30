@@ -17,7 +17,7 @@ import java.util.Map;
 import static org.apache.log4j.Level.ERROR;
 import static org.apache.log4j.Level.WARN;
 
-public class GadgetParser implements Parser<Gadget> {
+public class GadgetParser implements Parser<Gadget>, Writer<Gadget> {
     private static final Logger logger = Logger.getLogger(GadgetParser.class.getName());
 
     public GadgetParser() {
@@ -51,38 +51,44 @@ public class GadgetParser implements Parser<Gadget> {
     }
 
     public void write(Gadget g, File file) {
-        try (PrintWriter out = new PrintWriter(new FileWriter(file))) {
-            out.println(g.getName());
-
-            int x = g.getSizeX();
-            int y = g.getSizeY();
-            out.println(y + " " + x);
-
-            final MutableGrid<String> output = new MutableGrid<>("_", x + 2, y + 2);
-            for (int i = 0; i < x; i++) {
-                for (int j = 0; j < y; j++) {
-                    output.put(g.getCell(i ,j), i + 1, j + 1);
-                }
-            }
-
-            for (int i = 0; i < g.getInputSize(); i++) {
-                Side side = g.getInput(i);
-                Location loc = side.opposite().getLocation();
-                output.put("I_" + i, loc.add(1, 1));
-            }
-
-            for (int i = 0; i < g.getOutputSize(); i++) {
-                Side side = g.getOutput(i);
-                Location loc = side.opposite().getLocation();
-                output.put("O_" + i, loc.add(1, 1));
-            }
-
-            Joiner joiner = Joiner.on(" ");
-            for (int i = 0; i < output.getSizeX(); i++) {
-                out.println(joiner.join(GridUtils.sliceY(output, i)));
-            }
+        try (OutputStream stream = new FileOutputStream(file)) {
+            write(g, stream);
         } catch (IOException e) {
             logger.log(ERROR, e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void write(Gadget g, OutputStream stream) {
+        PrintWriter out = new PrintWriter(stream);
+        out.println(g.getName());
+
+        int x = g.getSizeX();
+        int y = g.getSizeY();
+        out.println(y + " " + x);
+
+        final MutableGrid<String> output = new MutableGrid<>("_", x + 2, y + 2);
+        for (int i = 0; i < x; i++) {
+            for (int j = 0; j < y; j++) {
+                output.put(g.getCell(i ,j), i + 1, j + 1);
+            }
+        }
+
+        for (int i = 0; i < g.getInputSize(); i++) {
+            Side side = g.getInput(i);
+            Location loc = side.opposite().getLocation();
+            output.put("I_" + i, loc.add(1, 1));
+        }
+
+        for (int i = 0; i < g.getOutputSize(); i++) {
+            Side side = g.getOutput(i);
+            Location loc = side.opposite().getLocation();
+            output.put("O_" + i, loc.add(1, 1));
+        }
+
+        Joiner joiner = Joiner.on(" ");
+        for (int i = 0; i < output.getSizeX(); i++) {
+            out.println(joiner.join(GridUtils.sliceY(output, i)));
         }
     }
 

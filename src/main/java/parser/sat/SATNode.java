@@ -1,4 +1,4 @@
-package parser;
+package parser.sat;
 
 import com.google.common.base.Preconditions;
 

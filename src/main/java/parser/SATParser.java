@@ -4,8 +4,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
-import reduction.ReductionRunner;
-import sun.reflect.annotation.ExceptionProxy;
+import parser.sat.SATNode;
+import parser.sat.SATTokenizer;
 import types.configuration.Configuration;
 import types.configuration.nodes.*;
 
@@ -14,9 +14,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Created by kevin on 11/30/14.
- */
 public class SATParser {
 
     private SATTokenizer tokenizer;
