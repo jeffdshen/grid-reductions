@@ -1,6 +1,7 @@
 package reduction.module;
 
 import org.apache.log4j.Logger;
+import parser.CellConfigurationParser;
 import reduction.ReductionData;
 import transform.LPGadgetPlacer;
 import types.Gadget;
@@ -18,6 +19,7 @@ public class GadgetAlignment implements Module<CellConfiguration, GadgetConfigur
     private static final Logger logger = Logger.getLogger(GadgetAlignment.class.getName());
 
     private LPGadgetPlacer placer;
+    private CellConfigurationParser parser = new CellConfigurationParser();
 
     @Override
     public String name() {
@@ -44,16 +46,12 @@ public class GadgetAlignment implements Module<CellConfiguration, GadgetConfigur
 
     @Override
     public CellConfiguration parse(File file) {
-        UnsupportedOperationException e = new UnsupportedOperationException();
-        logger.log(ERROR, e.getMessage(), e);
-        return null;
+        return parser.parse(file);
     }
 
     @Override
     public CellConfiguration parse(InputStream stream, String id) {
-        UnsupportedOperationException e = new UnsupportedOperationException();
-        logger.log(ERROR, e.getMessage(), e);
-        return null;
+        return parser.parse(stream, id);
     }
 
     @Override

@@ -18,22 +18,6 @@ public abstract class AbstractCell implements Cell {
         this.outputs = getBiMap(outputs);
     }
 
-    public AbstractCell(Map<Direction, Port> ports) {
-        ArrayList<Direction> inputs = new ArrayList<>();
-        ArrayList<Direction> outputs = new ArrayList<>();
-        for (Map.Entry<Direction, Port> entry : ports.entrySet()) {
-            if (entry.getValue().isInput()) {
-                inputs.add(entry.getKey());
-            } else {
-                outputs.add(entry.getKey());
-            }
-        }
-
-        this.inputs = getBiMap(inputs);
-        this.outputs = getBiMap(outputs);
-    }
-
-
     private static ImmutableBiMap<Integer, Direction> getBiMap(Iterable<Direction> dirs) {
         ImmutableBiMap.Builder<Integer, Direction> builder = ImmutableBiMap.builder();
         int index = 0;

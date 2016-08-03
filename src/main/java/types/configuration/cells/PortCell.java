@@ -13,13 +13,6 @@ public class PortCell extends AbstractCell {
     private final ImmutableList<Integer> id;
     private final ImmutableMap<Direction, Integer> ports;
 
-    public PortCell(String name, List<Integer> id, Map<Direction, Port> ports) {
-        super(ports);
-        this.name = name;
-        this.id = ImmutableList.copyOf(id);
-        this.ports = portToNumber(ports);
-    }
-
     public PortCell(
         String name,
         List<Integer> id,

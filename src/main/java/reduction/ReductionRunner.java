@@ -13,6 +13,7 @@ import reduction.module.Module;
 import reduction.xml.*;
 import transform.GadgetUtils;
 import types.Gadget;
+import types.configuration.CellConfiguration;
 import types.configuration.Configuration;
 import utils.ResourceUtils;
 

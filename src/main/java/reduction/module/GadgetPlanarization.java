@@ -1,6 +1,7 @@
 package reduction.module;
 
 import org.apache.log4j.Logger;
+import parser.CellConfigurationParser;
 import reduction.ReductionData;
 import transform.GadgetUtils;
 import transform.planar.GadgetPlanarizer;
@@ -16,6 +17,11 @@ import static org.apache.log4j.Level.ERROR;
 public class GadgetPlanarization implements Module<AtomicConfiguration, CellConfiguration> {
     private static final Logger logger = Logger.getLogger(ConfigurationSubstitution.class.getName());
     private GadgetPlanarizer planarizer;
+    private CellConfigurationParser parser;
+
+    public GadgetPlanarization() {
+        parser = new CellConfigurationParser();
+    }
 
     @Override
     public String name() {
@@ -28,9 +34,8 @@ public class GadgetPlanarization implements Module<AtomicConfiguration, CellConf
     }
 
     @Override
-    public void write(CellConfiguration cellConfiguration, OutputStream stream) {
-        UnsupportedOperationException e = new UnsupportedOperationException();
-        logger.log(ERROR, e.getMessage(), e);
+    public void write(CellConfiguration cellConfig, OutputStream stream) {
+        parser.write(cellConfig, stream);
     }
 
     @Override

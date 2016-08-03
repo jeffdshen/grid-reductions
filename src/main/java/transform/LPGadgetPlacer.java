@@ -129,9 +129,14 @@ public class LPGadgetPlacer {
 
                 int x;
                 for (Location edge = loc; ; edge = edge.add(1, 0)) {
+                    if (!config.isValid(edge)) {
+                        x = edge.getX();
+                        break;
+                    }
+
                     Cell edgeCell = config.getCell(edge);
                     CellType type = edgeCell.getCellType();
-                    if (!(config.isValid(edge) && (type == CellType.NODE || type == CellType.PORT))) {
+                    if (!((type == CellType.NODE || type == CellType.PORT))) {
                         x = edge.getX();
                         break;
                     }
@@ -144,9 +149,14 @@ public class LPGadgetPlacer {
 
                 int y;
                 for (Location edge = loc; ; edge = edge.add(0, 1)) {
+                    if (!config.isValid(edge)) {
+                        y = edge.getY();
+                        break;
+                    }
+
                     Cell edgeCell = config.getCell(edge);
                     CellType type = edgeCell.getCellType();
-                    if (!(config.isValid(edge) && (type == CellType.NODE || type == CellType.PORT))) {
+                    if (!(type == CellType.NODE || type == CellType.PORT)) {
                         y = edge.getY();
                         break;
                     }

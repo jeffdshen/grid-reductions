@@ -10,7 +10,7 @@ import java.util.*;
 import static org.apache.log4j.Level.ERROR;
 
 public class ConfigurationParser implements Parser<Configuration> {
-    private static final Logger logger = Logger.getLogger(GadgetParser.class.getName());
+    private static final Logger logger = Logger.getLogger(ConfigurationParser.class.getName());
 
     @Override
     public Configuration parse(File file) {

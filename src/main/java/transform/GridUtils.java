@@ -1,10 +1,7 @@
 package transform;
 
 import com.google.common.collect.ImmutableList;
-import types.Direction;
-import types.Grid;
-import types.Location;
-import types.Side;
+import types.*;
 import types.configuration.CellConfiguration;
 import types.configuration.cells.Cell;
 
@@ -40,6 +37,10 @@ public class GridUtils {
             builder.add(g.getCell(x, y));
         }
         return builder.build();
+    }
+
+    public static <E> Grid<E> subGrid(Grid<E> g, Location loc, int sizeX, int sizeY) {
+        return new SubGrid<>(g, loc, sizeX, sizeY);
     }
 
     /**
