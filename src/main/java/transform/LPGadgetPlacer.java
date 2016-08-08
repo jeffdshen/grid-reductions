@@ -184,7 +184,8 @@ public class LPGadgetPlacer {
         LocationID endID = getSide(new Side(end, d));
 
         Preconditions.checkArgument(wirer.canWire(d), d);
-        int thick = wirer.minThickness(d) * 2; // TODO replace this with better inequalities
+        // TODO replace thick with better choice, also require thick <= maxThickness, else this just adds padding
+        int thick = wirer.minThickness(d) * 2;
         int minLength = wirer.minLength(d, thick);
 
         // ports are offset, and have min length, then wire thickness

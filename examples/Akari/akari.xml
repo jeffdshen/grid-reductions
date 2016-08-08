@@ -50,6 +50,11 @@
                 <type>wire</type>
                 <symmetries>all</symmetries>
             </gadget>
+            <gadget>
+                <input type="file">wires/wire-5.txt</input>
+                <type>wire</type>
+                <symmetries>all</symmetries>
+            </gadget>
         </gadgets>
 
         <configs>
