@@ -1,35 +1,13 @@
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import org.apache.commons.cli.*;
-import parser.ConfigurationParser;
-import parser.GadgetParser;
-import parser.SATParser;
-import postprocessor.ImagePostProcessor;
-import postprocessor.PostProcessorUtils;
 import reduction.module.*;
 import reduction.ReductionRunner;
 import reduction.ReductionXmlParser;
 import reduction.xml.ReductionXml;
-import transform.ConfigurationResolver;
-import transform.GadgetUtils;
-import transform.LPGadgetPlacer;
-import transform.planar.GadgetPlanarizer;
-import types.Gadget;
-import types.Grid;
-import types.configuration.AtomicConfiguration;
-import types.configuration.CellConfiguration;
-import types.configuration.Configuration;
-import types.configuration.GadgetConfiguration;
-import utils.ResourceUtils;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
 
 public class Main {
     public void run(File reductionConfig) throws Exception {
@@ -39,7 +17,7 @@ public class Main {
         ReductionRunner runner = new ReductionRunner(ImmutableList.of(
             new SATParsing(),
             new ConfigurationSubstitution(),
-            new GadgetPlanarization(),
+            new GraphPlanarization(),
             new GadgetAlignment(),
             new GadgetPlacement(),
             new ImagePostProcessing()

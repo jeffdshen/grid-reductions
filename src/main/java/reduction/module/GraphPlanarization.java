@@ -14,18 +14,18 @@ import java.io.OutputStream;
 
 import static org.apache.log4j.Level.ERROR;
 
-public class GadgetPlanarization implements Module<AtomicConfiguration, CellConfiguration> {
+public class GraphPlanarization implements Module<AtomicConfiguration, CellConfiguration> {
     private static final Logger logger = Logger.getLogger(ConfigurationSubstitution.class.getName());
     private GadgetPlanarizer planarizer;
     private CellConfigurationParser parser;
 
-    public GadgetPlanarization() {
+    public GraphPlanarization() {
         parser = new CellConfigurationParser();
     }
 
     @Override
     public String name() {
-        return "GadgetPlanarization";
+        return "GraphPlanarization";
     }
 
     @Override

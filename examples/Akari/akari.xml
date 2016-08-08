@@ -103,7 +103,7 @@
             <name>ConfigurationSubstitution</name>
         </module>
         <module>
-            <name>GadgetPlanarization</name>
+            <name>GraphPlanarization</name>
         </module>
         <module>
             <name>GadgetAlignment</name>

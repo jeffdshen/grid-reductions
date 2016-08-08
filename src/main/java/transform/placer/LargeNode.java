@@ -304,6 +304,7 @@ public class LargeNode {
             }
 
             int thickness = getShifterThickness(d);
+            // TODO wire could also be in opp dir - fix.
             length += wirer.minLength(d, wirer.minThickness(d)) + getShifterLength(d, thickness);
 
             return length;
