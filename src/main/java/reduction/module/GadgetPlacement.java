@@ -1,6 +1,7 @@
 package reduction.module;
 
 import org.apache.log4j.Logger;
+import parser.StringGridParser;
 import reduction.ReductionData;
 import types.Gadget;
 import types.Grid;
@@ -17,6 +18,7 @@ public class GadgetPlacement implements Module<GadgetConfiguration, Grid<String>
     private static final Logger logger = Logger.getLogger(GadgetPlacement.class.getName());
 
     private Gadget empty;
+    private StringGridParser parser = new StringGridParser();
 
     @Override
     public String name() {
@@ -31,9 +33,7 @@ public class GadgetPlacement implements Module<GadgetConfiguration, Grid<String>
 
     @Override
     public void write(Grid<String> stringGrid, OutputStream stream) {
-        PrintWriter out = new PrintWriter(stream);
-        out.print(stringGrid);
-        out.flush();
+        parser.write(stringGrid, stream);
     }
 
     @Override

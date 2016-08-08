@@ -3,6 +3,9 @@
     <data>
         <gadgets>
             <gadget>
+                <input type="file">gadgets/and.txt</input>
+            </gadget>
+            <gadget>
                 <input type="file">gadgets/crossover.txt</input>
                 <type>crossover</type>
                 <symmetries>rotation</symmetries>
@@ -15,7 +18,13 @@
                 <input type="file">gadgets/end.txt</input>
             </gadget>
             <gadget>
+                <input type="file">gadgets/not.txt</input>
+            </gadget>
+            <gadget>
                 <input type="file">gadgets/or.txt</input>
+            </gadget>
+            <gadget>
+                <input type="file">gadgets/split.txt</input>
             </gadget>
             <gadget>
                 <input type="file">gadgets/split-not.txt</input>
@@ -70,51 +79,53 @@
             </config>
         </configs>
 
-        <images sizeX="10" sizeY="10">
+        <images sizeX="16" sizeY="16">
             <image>
                 <key>x</key>
-                <input type="file">images/black10.png</input>
+                <input type="file">images/black16.png</input>
             </image>
             <image>
                 <key>.</key>
-                <input type="file">images/blank10.png</input>
+                <input type="file">images/blank16.png</input>
             </image>
             <image>
                 <key>1</key>
-                <input type="file">images/one10.png</input>
+                <input type="file">images/one16.png</input>
             </image>
             <image>
                 <key>2</key>
-                <input type="file">images/two10.png</input>
+                <input type="file">images/two16.png</input>
             </image>
             <image>
                 <key>0</key>
-                <input type="file">images/zero10.png</input>
+                <input type="file">images/zero16.png</input>
             </image>
         </images>
     </data>
 
     <modules>
+        <!--<module>-->
+            <!--<name>SATParsing</name>-->
+            <!--<input type="string">!x || ((x &amp;&amp; y) || z)</input>-->
+        <!--</module>-->
+        <!--<module>-->
+            <!--<name>ConfigurationSubstitution</name>-->
+        <!--</module>-->
+        <!--<module>-->
+            <!--<name>GraphPlanarization</name>-->
+            <!--<output type="file">akari-layout.txt</output>-->
+        <!--</module>-->
+        <!--<module>-->
+            <!--<name>GadgetAlignment</name>-->
+        <!--</module>-->
+        <!--<module>-->
+            <!--<name>GadgetPlacement</name>-->
+            <!--<output type="file">akari.txt</output>-->
+        <!--</module>-->
         <module>
-            <name>SATParsing</name>
-            <input type="string">x &amp;&amp; y</input>
-        </module>
-        <module>
-            <name>ConfigurationSubstitution</name>
-        </module>
-        <module>
-            <name>GraphPlanarization</name>
-        </module>
-        <module>
-            <name>GadgetAlignment</name>
-        </module>
-        <module>
-            <name>GadgetPlacement</name>
-            <output type="file">akari.txt</output>
-        </module>
-        <module>
+            <input type="file">akari-mcphail.txt</input>
             <name>ImagePostProcessing</name>
-            <output type="file">akari.png</output>
+            <output type="file">akari-mcphail.png</output>
         </module>
     </modules>
 </reduction>

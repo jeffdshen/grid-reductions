@@ -1,6 +1,7 @@
 package reduction.module;
 
 import org.apache.log4j.Logger;
+import parser.StringGridParser;
 import postprocessor.ImagePostProcessor;
 import reduction.ReductionData;
 import types.Grid;
@@ -16,6 +17,7 @@ public class ImagePostProcessing implements Module<Grid<String>, BufferedImage> 
     private static final Logger logger = Logger.getLogger(ImagePostProcessing.class.getName());
 
     private ImagePostProcessor postprocessor;
+    private StringGridParser parser = new StringGridParser();
 
     @Override
     public String name() {
@@ -34,16 +36,12 @@ public class ImagePostProcessing implements Module<Grid<String>, BufferedImage> 
 
     @Override
     public Grid<String> parse(File file) {
-        UnsupportedOperationException e = new UnsupportedOperationException();
-        logger.log(ERROR, e.getMessage(), e);
-        return null;
+        return parser.parse(file);
     }
 
     @Override
     public Grid<String> parse(InputStream stream, String id) {
-        UnsupportedOperationException e = new UnsupportedOperationException();
-        logger.log(ERROR, e.getMessage(), e);
-        return null;
+        return parser.parse(stream, id);
     }
 
     @Override

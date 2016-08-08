@@ -1,0 +1,14 @@
+AND
+11	10
+_	_	_	_	_	_	_	_	_	_	_	_	_
+_	x	x	x	x	x	x	x	x	x	x	x	_
+_	x	x	x	x	x	.	x	x	x	x	x	_
+_	x	x	x	x	x	.	x	x	x	x	x	_
+_	x	.	x	x	.	1	.	x	x	.	x	_
+_	1	.	x	x	.	x	.	x	x	.	1	_
+I_0	.	2	.	.	2	.	2	.	.	2	.	I_1
+_	1	.	x	x	0	.	0	x	x	.	1	_
+_	x	.	x	x	1	.	1	x	x	.	x	_
+_	x	x	x	.	.	2	.	.	x	x	x	_
+_	x	x	x	x	x	.	x	x	x	x	x	_
+_	_	_	_	_	_	O_0	_	_	_	_	_	_
