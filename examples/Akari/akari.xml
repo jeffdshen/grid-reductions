@@ -104,28 +104,27 @@
     </data>
 
     <modules>
-        <!--<module>-->
-            <!--<name>SATParsing</name>-->
-            <!--<input type="string">!x || ((x &amp;&amp; y) || z)</input>-->
-        <!--</module>-->
-        <!--<module>-->
-            <!--<name>ConfigurationSubstitution</name>-->
-        <!--</module>-->
-        <!--<module>-->
-            <!--<name>GraphPlanarization</name>-->
-            <!--<output type="file">akari-layout.txt</output>-->
-        <!--</module>-->
-        <!--<module>-->
-            <!--<name>GadgetAlignment</name>-->
-        <!--</module>-->
-        <!--<module>-->
-            <!--<name>GadgetPlacement</name>-->
-            <!--<output type="file">akari.txt</output>-->
-        <!--</module>-->
         <module>
-            <input type="file">akari-mcphail.txt</input>
+            <name>SATParsing</name>
+            <input type="string">!x || ((x &amp;&amp; y) || z)</input>
+        </module>
+        <module>
+            <name>ConfigurationSubstitution</name>
+        </module>
+        <module>
+            <name>GraphPlanarization</name>
+            <output type="file">akari-layout.txt</output>
+        </module>
+        <module>
+            <name>GadgetAlignment</name>
+        </module>
+        <module>
+            <name>GadgetPlacement</name>
+            <output type="file">akari.txt</output>
+        </module>
+        <module>
             <name>ImagePostProcessing</name>
-            <output type="file">akari-mcphail.png</output>
+            <output type="file">akari.png</output>
         </module>
     </modules>
 </reduction>
