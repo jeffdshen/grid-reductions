@@ -153,4 +153,24 @@ public class GridUtils {
 
         return true;
     }
+
+    /**
+     * Gets the corner in these directions. TODO: TEST
+     */
+    public static Location getCorner(Grid g, Direction d1, Direction d2) {
+        Location[] corners = new Location[]{
+            new Location(0, 0),
+            new Location(0, g.getSizeY() - 1),
+            new Location(g.getSizeX() - 1, g.getSizeY() - 1),
+            new Location(g.getSizeX() - 1, 0),
+        };
+
+        for (Location loc : corners) {
+            if (!g.isValid(loc.add(d1)) && !g.isValid(loc.add(d2))) {
+                return loc;
+            }
+        }
+
+        throw new IllegalArgumentException();
+    }
 }

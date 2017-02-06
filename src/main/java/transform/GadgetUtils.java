@@ -6,6 +6,8 @@ import com.google.common.collect.*;
 import com.google.common.io.PatternFilenameFilter;
 import parser.GadgetParser;
 import types.*;
+import types.configuration.CellConfiguration;
+import types.configuration.cells.NodeCell;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -124,26 +126,6 @@ public class GadgetUtils {
         return new Gadget(g.getName(), cells, inputs, outputs);
     }
 
-    /**
-     * Gets the corner in these directions. TODO: TEST
-     */
-    public static Location getCorner(Grid g, Direction d1, Direction d2) {
-        Location[] corners = new Location[]{
-            new Location(0, 0),
-            new Location(0, g.getSizeY() - 1),
-            new Location(g.getSizeX() - 1, g.getSizeY() - 1),
-            new Location(g.getSizeX() - 1, 0),
-        };
-
-        for (Location loc : corners) {
-            if (!g.isValid(loc.add(d1)) && !g.isValid(loc.add(d2))) {
-                return loc;
-            }
-        }
-
-        throw new IllegalArgumentException();
-    }
-
     public static Map<String, Gadget> getGadgetMap(Iterable<Gadget> gadgets) {
         return Maps.uniqueIndex(gadgets, new Function<Gadget, String>() {
             @Override
@@ -250,29 +232,5 @@ public class GadgetUtils {
         return gadgetSides;
     }
 
-    /**
-     * Returns a profile of the gadget's inputs and outputs. TODO: TEST
-     */
-    public static Map<Direction, ? extends List<Boolean>> getProfile(Gadget g) {
-        ImmutableMap.Builder<Direction, List<Boolean>> builder = ImmutableMap.builder();
-        // TODO improve algorithm so that it runs in O(inputs/outputs) and not O(sizeX + sizeY)
-        for (Direction d : Direction.values()) {
-            Direction step = d.clockwise();
-            int count = 0;
-            ImmutableList.Builder<Boolean> side = ImmutableList.builder();
-            for (Location loc = getCorner(g, d, step.opposite()); g.isValid(loc); loc = loc.add(step)) {
-                if (g.isInput(loc, d)) {
-                    side.add(true);
-                } else if (g.isOutput(loc, d)) {
-                    side.add(false);
-                }
-            }
-            builder.put(d, side.build());
-        }
-
-        return builder.build();
-    }
-
-
-
+    // TODO Gadget to CellConfiguration (use merge sort on each set of parallel sides).
 }

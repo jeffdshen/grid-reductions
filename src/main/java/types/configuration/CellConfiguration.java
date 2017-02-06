@@ -1,9 +1,17 @@
 package types.configuration;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Iterables;
 import types.Direction;
+import types.Location;
 import types.MutableGrid;
+import types.Side;
 import types.configuration.cells.Cell;
 import types.configuration.cells.EmptyCell;
+import types.configuration.cells.PortCell;
+
+import java.util.List;
 
 public class CellConfiguration extends MutableGrid<Cell> {
     public CellConfiguration(int initialSizeX, int initialSizeY) {
@@ -12,6 +20,34 @@ public class CellConfiguration extends MutableGrid<Cell> {
 
     public CellConfiguration(Cell background, int initialSizeX, int initialSizeY) {
         super(background, initialSizeX, initialSizeY);
+    }
+
+    public void putPort(Side s, boolean isInput, int port) {
+        Location loc = s.getLocation();
+        Direction d = s.getDirection();
+        Cell c = getCell(s.getLocation());
+
+        Iterable<Direction> inputs = c.getInputDirections();
+        Iterable<Direction> outputs = c.getOutputDirections();
+
+        ImmutableMap.Builder<Direction, Integer> portsBuilder = ImmutableMap.builder();
+        for (Direction input : inputs) {
+            portsBuilder.put(input, c.getPortNumber(input));
+        }
+
+        for (Direction output : outputs) {
+            portsBuilder.put(output, c.getPortNumber(output));
+        }
+
+        // add direction->port
+        if (isInput) {
+            inputs = Iterables.concat(inputs, ImmutableList.of(d));
+        } else {
+            outputs = Iterables.concat(outputs, ImmutableList.of(d));
+        }
+        portsBuilder.put(s.getDirection(), port);
+
+        put(new PortCell(c.getName(), c.getId(), inputs, outputs, portsBuilder.build()), loc);
     }
 
     @Override

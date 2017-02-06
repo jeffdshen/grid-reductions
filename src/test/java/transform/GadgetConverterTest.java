@@ -2,7 +2,9 @@ package transform;
 
 import com.google.common.collect.ImmutableList;
 import org.testng.annotations.Test;
+import parser.CellConfigurationParser;
 import parser.GadgetParser;
+import parser.ParserUtils;
 import types.Direction;
 import types.Gadget;
 import types.configuration.CellConfiguration;
@@ -20,10 +22,10 @@ public class GadgetConverterTest {
         Gadget gadget = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), "types/gadget/circuit/and.txt"));
         GadgetConverter converter = new GadgetConverter();
         CellConfiguration grid = converter.toGridConfiguration(gadget, ImmutableList.of(1, 2, 3));
-
         assertEquals(grid.getSizeX(), 1);
         assertEquals(grid.getSizeY(), 2);
 
+        // TODO use .equals and CellConfigurationParser to test
         Cell c1 = grid.getCell(0, 0);
         assertEquals(c1.getCellType(), CellType.PORT);
         assertEquals(c1.getName(), "AND");
