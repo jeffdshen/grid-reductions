@@ -1,4 +1,4 @@
-package transform.planar;
+package transform.planar.expander;
 
 import types.Direction;
 import types.configuration.cells.Cell;

@@ -1,4 +1,4 @@
-package transform.planar;
+package transform.planar.expander;
 
 import com.google.common.base.Preconditions;
 import types.Direction;
@@ -7,7 +7,8 @@ import types.configuration.cells.*;
 /**
  * Ensures non-zero area for regions
  */
-public class AreaCellExpander implements CellExpander{
+public class AreaCellExpander implements CellExpander {
+    // TODO fix this class for different node/ports that are touching
     public boolean conflict(Direction d, Cell c1, Cell c2) {
         if (!isWireOrTurn(c1) && !isWireOrTurn(c2)) {
             return false;

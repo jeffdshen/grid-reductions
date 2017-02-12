@@ -3,11 +3,9 @@ package types.configuration;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Iterables;
-import types.Direction;
-import types.Location;
-import types.MutableGrid;
-import types.Side;
+import types.*;
 import types.configuration.cells.Cell;
+import types.configuration.cells.CellType;
 import types.configuration.cells.EmptyCell;
 import types.configuration.cells.PortCell;
 
@@ -20,6 +18,18 @@ public class CellConfiguration extends MutableGrid<Cell> {
 
     public CellConfiguration(Cell background, int initialSizeX, int initialSizeY) {
         super(background, initialSizeX, initialSizeY);
+    }
+
+    public boolean isEmpty(int x, int y, Location loc) {
+        for (int i = 0; i < x; i++) {
+            for (int j = 0; j < y; j++) {
+                if (getCell(loc.add(i, j)).getCellType() != CellType.EMPTY) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     public void putPort(Side s, boolean isInput, int port) {

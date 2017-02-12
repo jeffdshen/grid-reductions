@@ -121,6 +121,7 @@
             <output type="file">akari-layout.txt</output>
         </module>
         <module>
+            <!--<input type="file">akari-mcphail-opt-layout.txt</input>-->
             <name>GadgetAlignment</name>
         </module>
         <module>

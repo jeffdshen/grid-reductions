@@ -5,12 +5,14 @@ import parser.CellConfigurationParser;
 import reduction.ReductionData;
 import transform.GadgetUtils;
 import transform.planar.GadgetPlanarizer;
+import types.Gadget;
 import types.configuration.AtomicConfiguration;
 import types.configuration.CellConfiguration;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.Map;
 
 import static org.apache.log4j.Level.ERROR;
 
@@ -30,7 +32,13 @@ public class GraphPlanarization implements Module<AtomicConfiguration, CellConfi
 
     @Override
     public void init(ReductionData data) {
-        planarizer = new GadgetPlanarizer(GadgetUtils.getGadgetMap(data.getGadgets()));
+        Map<String, Iterable<Gadget>> typed = data.getTypedGadgets();
+        Iterable<Gadget> wires = typed.get("wire");
+        Iterable<Gadget> turns = typed.get("turn");
+        Iterable<Gadget> crossovers = typed.get("crossover");
+        Gadget empty = typed.get("empty").iterator().next();
+        Iterable<Gadget> gadgets = data.getGadgets();
+        planarizer = new GadgetPlanarizer(wires, turns, crossovers, empty, gadgets);
     }
 
     @Override

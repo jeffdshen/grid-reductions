@@ -31,7 +31,7 @@ public class AtomicNode {
     }
 
     public AtomicPort getOutputPort(int i) {
-        return new AtomicPort(context, node.getInputPort(i));
+        return new AtomicPort(context, node.getOutputPort(i));
     }
 
     public int inputSize() {

@@ -1,15 +1,22 @@
 package transform.planar;
 
+import transform.planar.expander.AllCellExpander;
+import transform.planar.expander.AreaCellExpander;
+import transform.planar.expander.CellExpander;
+import transform.planar.expander.WireCellExpander;
 import types.Direction;
 import types.configuration.CellConfiguration;
 import types.configuration.cells.Cell;
 
 public class GridExpander {
-    private AreaCellExpander area;
-    private WireCellExpander wire;
+    private final AreaCellExpander area;
+    private final WireCellExpander wire;
+    private final AllCellExpander all;
+
     public GridExpander() {
         area = new AreaCellExpander();
         wire = new WireCellExpander();
+        all = new AllCellExpander();
     }
 
     /**
@@ -23,6 +30,11 @@ public class GridExpander {
     public void expand(CellConfiguration grid) {
         expandX(area, grid, true);
         expandX(area, grid, false);
+    }
+
+    public void expandDouble(CellConfiguration grid) {
+        expandX(all, grid, true);
+        expandX(all, grid, false);
     }
 
     /**

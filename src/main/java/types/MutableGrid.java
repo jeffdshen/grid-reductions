@@ -3,6 +3,7 @@ package types;
 import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import transform.GridUtils;
+import types.configuration.CellConfiguration;
 
 public class MutableGrid<Cell> implements Grid<Cell> {
     private Cell background;
@@ -35,6 +36,15 @@ public class MutableGrid<Cell> implements Grid<Cell> {
         this.cells = newCells;
         this.sizeX = x;
         this.sizeY = y;
+    }
+
+    /**
+     * Expands all sides, and recenters
+     */
+    public void expand(int x, int y) {
+        MutableGrid<Cell> newGrid = new MutableGrid<>(background, getSizeX() + 2 * x, getSizeY() + 2 * y);
+        newGrid.put(this, x + 1, y + 1);
+        this.set(newGrid.cells, newGrid.getSizeX(), newGrid.getSizeY());
     }
 
     @Override
@@ -106,7 +116,7 @@ public class MutableGrid<Cell> implements Grid<Cell> {
     public String toString() {
         StringBuilder builder = new StringBuilder();
         for (int i = 0; i < sizeY; i++) {
-            builder.append(Joiner.on(" ").join(GridUtils.sliceY(this, i)));
+            builder.append(Joiner.on("t").join(GridUtils.sliceY(this, i)));
             builder.append(System.lineSeparator());
         }
         return builder.toString();

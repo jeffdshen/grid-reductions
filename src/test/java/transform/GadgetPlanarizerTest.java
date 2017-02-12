@@ -30,10 +30,9 @@ public class GadgetPlanarizerTest {
         Gadget split = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "split.txt"));
         Gadget end = parser.parse(ResourceUtils.getAbsoluteFile(getClass(), dir + "end.txt"));
 
-
-        GadgetPlanarizer placer = new GadgetPlanarizer(
-            ImmutableMap.of("AND", and,"OR", or, "VARIABLE", var, "SPLIT", split, "END", end)
-        );
-        System.out.println(placer.process(config));
+//        GadgetPlanarizer placer = new GadgetPlanarizer(
+//            ImmutableMap.of("AND", and,"OR", or, "VARIABLE", var, "SPLIT", split, "END", end)
+//        );
+//        System.out.println(placer.process(config));
     }
 }

@@ -5,6 +5,8 @@ import com.google.common.collect.*;
 import transform.lp.*;
 import transform.placer.LargeNode;
 import transform.placer.LocationID;
+import transform.planar.AbstractCostFunction;
+import transform.planar.GadgetSet;
 import transform.wiring.FrobeniusWirer;
 import transform.wiring.Shifter;
 import transform.wiring.TurnShifter;
@@ -30,13 +32,13 @@ public class LPGadgetPlacer {
     // wires mapped by their output direction
     private final Multimap<Direction, Gadget> wires;
 
-    // wires
     private final Map<List<Direction>, Gadget> turns;
     private final Map<Set<Direction>, Gadget> crossovers;
     private final Map<String, Gadget> gadgets;
 
     private final Wirer wirer;
     private final Shifter shifter;
+    private final GadgetSet gadgetSet;
 
     public LPGadgetPlacer(
         Iterable<Gadget> wires,
@@ -56,6 +58,7 @@ public class LPGadgetPlacer {
         this.crossovers = GadgetUtils.getCrossoverMap(crossovers);
         this.wirer = new FrobeniusWirer(wires);
         this.shifter = new TurnShifter(turns, wires, wirer);
+        this.gadgetSet = new GadgetSet(wires, turns, crossovers, empty, gadgets);
     }
 
     private void addBasicConstraints(CellConfiguration config, LinearProgram.Builder lp) {
@@ -460,6 +463,8 @@ public class LPGadgetPlacer {
     }
 
     public GadgetConfiguration place(CellConfiguration cellConfig) throws Exception {
+        System.out.println("cost: " + new AbstractCostFunction(cellConfig, gadgetSet).getTotalCost());
+
         Map<String, Double> sol = runLP(cellConfig);
         System.out.println(sol.get(getSlice(0).x) + "," + sol.get(getSlice(cellConfig.getSizeX()).x) +
             "," +  sol.get(getSlice(0).y) + "," + sol.get(getSlice(cellConfig.getSizeY()).y));

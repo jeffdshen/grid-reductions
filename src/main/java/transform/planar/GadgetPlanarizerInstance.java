@@ -1,41 +1,32 @@
 package transform.planar;
 
-import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 import transform.GadgetConverter;
-import transform.Processor;
-import types.Direction;
+import transform.GadgetUtils;
 import types.Gadget;
 import types.Location;
 import types.Side;
 import types.configuration.AtomicConfiguration;
 import types.configuration.CellConfiguration;
-import types.configuration.cells.*;
 import types.configuration.nodes.AtomicNode;
 import types.configuration.nodes.AtomicPort;
-import types.configuration.nodes.Port;
 
-import javax.annotation.Nonnull;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
 
 class GadgetPlanarizerInstance {
     private static final int INITIAL_SIZE = 10;
+    private final GadgetSet gadgets;
 
     private CellConfiguration grid;
     private AtomicConfiguration config;
-    private final ImmutableMap<String, Gadget> gadgets;
     private final GridExpander expander;
     private final GadgetConverter converter;
 
-    // weights for getting a path.
-    private final int crossover = 20;
-    private final int turn = 5;
-    private final int wire = 3;
+    private boolean incrCost = false;
 
-    GadgetPlanarizerInstance(AtomicConfiguration config, Map<String, Gadget> gadgets) {
+    GadgetPlanarizerInstance(AtomicConfiguration config, GadgetSet gadgets) {
         this.config = config;
-        this.gadgets = ImmutableMap.copyOf(gadgets);
+        this.gadgets = gadgets;
         this.grid = new CellConfiguration(INITIAL_SIZE, INITIAL_SIZE);
         this.expander = new GridExpander();
         this.converter = new GadgetConverter();
@@ -49,26 +40,79 @@ class GadgetPlanarizerInstance {
         Iterable<AtomicNode> nodes = config.getNodes();
         // assume nodes are in topological order
         for (AtomicNode node : nodes) {
-            CellConfiguration nodeGrid = converter.toGridConfiguration(gadgets.get(node.getName()), node.getId());
-            List<Location> locs = getPlaces(nodeGrid);
+            CellConfiguration nodeGrid = converter.toGridConfiguration(gadgets.gadgets.get(node.getName()), node.getId());
+            List<Location> locs = PlanarUtils.getPlacements(grid, nodeGrid);
             if (locs.isEmpty()) {
                 grid.resize(grid.getSizeX() + nodeGrid.getSizeX() + 2, grid.getSizeY() + nodeGrid.getSizeY() + 2);
-                locs = getPlaces(nodeGrid);
+                locs = PlanarUtils.getPlacements(grid, nodeGrid);
             }
 
             Location best = locs.get(0);
+            if (!grid.isEmpty(nodeGrid.getSizeX() + 2, nodeGrid.getSizeY() + 2, best.subtract(1, 1))) {
+                throw new IllegalStateException(
+                    String.format("Configuration put at node %s would overwrite cells", best)
+                );
+            }
             grid.put(nodeGrid, best);
-            connect(node);
+            connectInputs(node);
         }
 
+        replace();
         expander.expandLast(grid);
     }
 
-    private void connect(AtomicNode node) {
+
+    // TODO - replace 2 at a time
+    public void replace() {
+        expander.expandDouble(grid);
+        Iterable<AtomicNode> nodes = config.getNodes();
+        for (int i = 15; i >= 0; i--) {
+            grid.expand(5, 5); // TODO non hard code
+            if (i < 4) {
+                incrCost = true;
+            }
+            System.out.println(String.format(
+                "re-placing step %d, cost - %d, size - %d, %d.",
+                i,
+                getNewCostFunction().getTotalCost(),
+                grid.getSizeX(),
+                grid.getSizeY()
+            ));
+
+            for (AtomicNode node : nodes) {
+                PlanarUtils.deleteNode(grid, node);
+                CellConfiguration nodeGrid = converter.toGridConfiguration(gadgets.gadgets.get(node.getName()), node.getId());
+                Location best = PlanarUtils.findReplacement(
+                    grid, config, node, nodeGrid, getNewCostFunction(), i * 0.04
+                );
+
+                // TODO - expand grid
+                if (best == null) {
+                    throw new IllegalStateException(
+                        String.format("Couldn't find location to re-place node %s", node)
+                    );
+                }
+
+                if (!grid.isEmpty(nodeGrid.getSizeX() + 2, nodeGrid.getSizeY() + 2, best.subtract(1, 1))) {
+                    throw new IllegalStateException(
+                        String.format("CellConfiguration put at node %s would overwrite cells", best)
+                    );
+                }
+                grid.put(nodeGrid, best);
+                connectInputs(node);
+                connectOutputs(node);
+            }
+
+            PlanarUtils.deleteSlices(grid);
+            System.out.println(grid);
+        }
+    }
+
+    private void connectInputs(AtomicNode node) {
         for (int i = 0; i < node.inputSize(); i++) {
             AtomicPort port = node.getInputPort(i);
-            Side end = find(port);
-            Side start = find(config.getConnectingPort(port));
+            Side start = PlanarUtils.findPort(grid, port);
+            Side end = PlanarUtils.findPort(grid, config.getConnectingPort(port));
 
             if (start == null || end == null) {
                 port = config.getConnectingPort(port);
@@ -79,196 +123,38 @@ class GadgetPlanarizerInstance {
                 );
             }
 
-            List<Side> path = getPath(start, end);
-            // skip start
-            for (int j = 1; j + 1 < path.size(); j += 2) {
-                Side input = path.get(j);
-                Side output = path.get(j + 1);
-                Cell cell = grid.getCell(input.getLocation());
-                switch(cell.getCellType()) {
-                    case EMPTY:
-                        if (input.getDirection() == output.getDirection().opposite()) {
-                            grid.put(WireCell.getWire(output.getDirection()), input.getLocation());
-                        } else {
-                            grid.put(new TurnCell(input.getDirection(), output.getDirection()), input.getLocation());
-                        }
-                        break;
-                    case WIRE:
-                        grid.put(new CrossoverCell(cell.getOutputDirection(0), output.getDirection()), input.getLocation());
-                        break;
-                    default:
-                        Preconditions.checkState(false);
-                        break;
-                }
-            }
-
+            List<Side> path = new DijkstrasPather(grid, start, getNewCostFunction(), true).getPath(end);
+            PlanarUtils.putInputPath(grid, path);
             expander.expand(grid);
         }
     }
 
-    private Side find(AtomicPort port) {
-        for (int i = 0; i < grid.getSizeX(); i++) {
-            for (int j = 0; j < grid.getSizeY(); j++) {
-                Cell c = grid.getCell(i, j);
+    private void connectOutputs(AtomicNode node) {
+        for (int i = 0; i < node.outputSize(); i++) {
+            AtomicPort port = node.getOutputPort(i);
+            Side start = PlanarUtils.findPort(grid, port);
+            Side end = PlanarUtils.findPort(grid, config.getConnectingPort(port));
 
-                if (c.getCellType() != CellType.PORT || !c.getId().equals(port.getId())) {
-                    continue;
-                }
+            if (start == null || end == null) {
+                port = config.getConnectingPort(port);
+                String nodeName = config.getNode(port.getContext(), port.getPort().getId()).getName();
 
-                for (Direction d : Direction.values()) {
-                    Port p = port.getPort();
-                    if (((p.isInput() && c.isInput(d)) || (!p.isInput() && c.isOutput(d)))
-                            && p.getPortNumber() == c.getPortNumber(d)) {
-                        return new Side(new Location(i, j), d);
-                    }
-                }
+                throw new IllegalArgumentException(
+                    String.format("Configuration with node %s is not topologically sorted", nodeName)
+                );
             }
+
+            List<Side> path = new DijkstrasPather(grid, start, getNewCostFunction(), false).getPath(end);
+            PlanarUtils.putOutputPath(grid, path);
+            expander.expand(grid);
         }
-        return null;
     }
 
-    private List<Location> getPlaces(CellConfiguration node) {
-        // leave space for wires
-        int x = node.getSizeX() + 2;
-        int y = node.getSizeY() + 2;
-        int[][] sizeX = new int[grid.getSizeX()][grid.getSizeY()];
-        int[][] sizeY = new int[grid.getSizeX()][grid.getSizeY()];
-
-        // use dp to calculate what size rectangle fits at each location
-        for (int i = grid.getSizeX() - 1; i >= 0; i--) {
-            for (int j = grid.getSizeY() - 1; j >= 0; j--) {
-                if (grid.getCell(i, j).getCellType() != CellType.EMPTY) {
-                    sizeX[i][j] = 0;
-                    sizeY[i][j] = 0;
-                } else {
-                    if (grid.isValid(i + 1, j + 1)) {
-                        sizeX[i][j] = Math.min(sizeX[i + 1][j] + 1, sizeX[i][j + 1]);
-                        sizeY[i][j] = Math.min(sizeY[i + 1][j], sizeY[i][j + 1] + 1);
-                    } else if (grid.isValid(i + 1, j)) {
-                        sizeX[i][j] = sizeX[i + 1][j] + 1;
-                        sizeY[i][j] = sizeY[i + 1][j];
-                    } else if (grid.isValid(i, j + 1)) {
-                        sizeX[i][j] = sizeX[i][j + 1];
-                        sizeY[i][j] = sizeY[i][j + 1] + 1;
-                    } else {
-                        sizeX[i][j] = 1;
-                        sizeY[i][j] = 1;
-                    }
-                }
-            }
+    private CostFunction getNewCostFunction() {
+        if (incrCost) {
+            return new IncrementalCost(grid, gadgets);
         }
 
-        ArrayList<Location> locs = new ArrayList<>();
-        for (int i = 0; i < grid.getSizeX(); i++) {
-            for (int j = 0; j < grid.getSizeY(); j++) {
-                if (sizeX[i][j] >= x && sizeY[i][j] >= y) {
-                    locs.add(new Location(i + 1, j + 1));
-                }
-            }
-        }
-        return Collections.unmodifiableList(locs);
-    }
-
-    private List<Side> getPath(Side start, Side end) {
-        Map<Side, Side> prev = new HashMap<>();
-        final Map<Side, Integer> dist = new HashMap<>();
-        PriorityQueue<VertexDistance> queue = new PriorityQueue<>();
-        Set<Side> seen = new HashSet<>();
-
-        dist.put(start, 0);
-        queue.add(new VertexDistance(start, 0));
-
-        while (!queue.isEmpty()) {
-            final VertexDistance u = queue.poll();
-
-            if (seen.contains(u.v)) {
-                continue;
-            }
-
-            seen.add(u.v);
-            Iterable<VertexDistance> neighbors = getNeighbors(u);
-
-            for (VertexDistance v : neighbors) {
-                if (seen.contains(v.v)) {
-                    continue;
-                }
-
-                int alt = u.dist + v.dist;
-                if (!dist.containsKey(v.v) || alt < dist.get(v.v)) {
-                    dist.put(v.v, alt);
-                    prev.put(v.v, u.v);
-                    queue.add(new VertexDistance(v.v, alt));
-                }
-            }
-        }
-
-        ImmutableList.Builder<Side> builder = ImmutableList.builder();
-        Side cur = end;
-        while (cur != null && !cur.equals(start)) {
-            builder.add(cur);
-            cur = prev.get(cur);
-        }
-        if (cur == null) {
-//            System.out.println(grid);
-            throw new IllegalStateException(String.format("Unexpected error, no path from %s to %s", start, end));
-        }
-        builder.add(cur);
-        return builder.build().reverse();
-    }
-
-    private Iterable<VertexDistance> getNeighbors(final VertexDistance u) {
-        Cell c = grid.getCell(u.v.getLocation());
-
-        ImmutableList.Builder<VertexDistance> builder = ImmutableList.builder();
-        if (grid.isValid(u.v.opposite().getLocation())) {
-            builder.add(new VertexDistance(u.v.opposite(), 0));
-        }
-
-        if (c.getCellType() == CellType.WIRE) {
-            builder.add(new VertexDistance(u.v.clockwise().clockwise(), crossover));
-        } else if (c.getCellType() == CellType.EMPTY) {
-            builder.add(new VertexDistance(u.v.clockwise().clockwise(), wire));
-            builder.add(new VertexDistance(u.v.clockwise(), turn));
-            builder.add(new VertexDistance(u.v.anticlockwise(), turn));
-        }
-
-        return builder.build();
-    }
-
-    private static class VertexDistance implements Comparable<VertexDistance> {
-        public final Side v;
-        public final int dist;
-
-        public VertexDistance(Side v, int dist) {
-            this.v = v;
-            this.dist = dist;
-        }
-
-        @Override
-        public int compareTo(@Nonnull VertexDistance o) {
-            return this.dist - o.dist;
-        }
-
-        @Override
-        public int hashCode() {
-            int hash = 7;
-            hash = 71 * hash + v.hashCode();
-            hash = 71 * hash + dist;
-            return hash;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o instanceof VertexDistance) {
-                VertexDistance that = (VertexDistance) o;
-                return (v == that.v) && (dist == that.dist);
-            }
-            return super.equals(o);
-        }
-
-        @Override
-        public String toString() {
-            return getClass().getName() + "[v=" + v + ",dist=" + dist + "]";
-        }
+        return new BaseCost(grid, gadgets);
     }
 }
